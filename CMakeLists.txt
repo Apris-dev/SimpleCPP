@@ -120,6 +120,7 @@ set(SIMPLECPP_MODULES
         SimpleUtils
         SimplePtr
         SimpleSTL
+        SimpleArchive
         SimpleDG
 )
 

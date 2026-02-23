@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "Hashing.h"
+#include "../../../SimpleArchive/include/sarch/HashArchive.h"
 
 // To keep it simpler than the default std::pair, we rewrite it to be more usable.
 // Not used internally in maps, just for Container use for implicit conversion and easy usage

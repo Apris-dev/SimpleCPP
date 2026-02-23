@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-#include "Hashing.h"
+#include "../../../SimpleArchive/include/sarch/HashArchive.h"
 
 namespace sstl {
     template <class TType, class... TArgs>

@@ -3,7 +3,7 @@
 #include <unordered_set>
 #include "Container.h"
 #include "sutil/InitializerList.h"
-#include "sutil/Hashing.h"
+#include "../../../SimpleArchive/include/sarch/HashArchive.h"
 
 template <typename TType,
           std::enable_if_t<sutil::is_hashable_v<TType>, int> = 0

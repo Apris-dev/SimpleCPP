@@ -6,7 +6,7 @@
 #include <map>
 #include <unordered_set>
 #include <queue>
-#include "sutil/Hashing.h"
+#include "../../../SimpleArchive/include/sarch/HashArchive.h"
 
 #ifdef USING_SIMPLESTL
 #include "sstl/Vector.h"

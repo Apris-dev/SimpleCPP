@@ -1,5 +1,6 @@
 #pragma once
 
+#include <charconv>
 #include <string>
 
 #ifdef USING_SIMPLESTL
@@ -16,6 +17,20 @@ protected:
 
 	virtual void read(void* inValue, size_t inElementSize, size_t inCount) = 0;
 
+	std::string readUntil(const char terminator) {
+		std::string res;
+		char c;
+		while (true) {
+			read(&c, sizeof(char), 1);
+			if (c == terminator)
+				break;
+			res += c;
+		}
+		return res;
+	}
+
+	 [[nodiscard]] virtual bool isBinary() = 0;
+
 public:
 
 	virtual ~CInputArchive() = default;
@@ -24,7 +39,14 @@ public:
 		std::enable_if_t<std::is_arithmetic_v<TType>, int> = 0
 	>
 	friend CInputArchive& operator>>(CInputArchive& inArchive, TType& inValue) {
-		inArchive.read(&inValue, sizeof(TType), 1);
+		// Either serialize numbers as binary or ASCII with null terminator
+		if (inArchive.isBinary()) {
+			inArchive.read(&inValue, sizeof(TType), 1);
+		} else {
+			const std::string res = inArchive.readUntil('\0');
+			const std::from_chars_result numRes = std::from_chars(res.data(), res.data() + res.size(), inValue);
+			assert(numRes.ec == std::errc() && numRes.ptr == (res.data() + res.size()));
+		}
 		return inArchive;
 	}
 
@@ -48,10 +70,17 @@ public:
 	}
 
 	friend CInputArchive& operator>>(CInputArchive& inArchive, std::string& inValue) {
-		size_t size;
-		inArchive >> size;
-		inValue.resize(size);
-		inArchive.read(inValue.data(), 1, inValue.size());
+		// If binary, we serialize the string based on its size, if not, we check for newline
+		if (inArchive.isBinary()) {
+			size_t size;
+			inArchive >> size;
+			inValue.resize(size);
+
+			inArchive.read(inValue.data(), 1, inValue.size());
+		} else {
+			inValue = inArchive.readUntil('\n');
+		}
+
 		return inArchive;
 	}
 
@@ -119,6 +148,8 @@ protected:
 
 	virtual void write(const void* inValue, size_t inElementSize, size_t inCount) = 0;
 
+	virtual bool isBinary() = 0;
+
 public:
 
 	virtual ~COutputArchive() = default;
@@ -127,7 +158,15 @@ public:
 		std::enable_if_t<std::is_arithmetic_v<TType>, int> = 0
 	>
 	friend COutputArchive& operator<<(COutputArchive& inArchive, const TType& inValue) {
-		inArchive.write(&inValue, sizeof(TType), 1);
+		// Either serialize numbers as binary or ASCII with null terminator
+		if (inArchive.isBinary()) {
+			inArchive.write(&inValue, sizeof(TType), 1);
+		} else {
+			const auto str = std::to_string(inValue);
+			inArchive.write(str.data(), 1, str.size());
+			constexpr char nullString = '\0';
+			inArchive.write(&nullString, sizeof(nullString), 1);
+		}
 		return inArchive;
 	}
 
@@ -147,8 +186,15 @@ public:
 	}
 
 	friend COutputArchive& operator<<(COutputArchive& inArchive, const std::string& inValue) {
-		inArchive << inValue.size();
-		inArchive.write(inValue.data(), 1, inValue.size());
+		// If binary, we serialize the string based on its size, if not, we save with newline
+		if (inArchive.isBinary()) {
+			inArchive << inValue.size();
+			inArchive.write(inValue.data(), 1, inValue.size());
+		} else {
+			inArchive.write(inValue.data(), 1, inValue.size());
+			constexpr char newLine = '\n';
+			inArchive.write(&newLine, sizeof(newLine), 1);
+		}
 		return inArchive;
 	}
 
@@ -198,4 +244,4 @@ public:
 
 };
 
-class CArchive : public CInputArchive, public COutputArchive {};
+class CArchive : public virtual CInputArchive, public virtual COutputArchive {};
