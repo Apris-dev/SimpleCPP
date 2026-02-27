@@ -18,7 +18,7 @@ You can copy SimpleCPP (or any of its modules, but be wary as they may depend on
 
 This setup may be more complex initially, but allows for a lot of freedom.  I recommend setting up the project as a subdirectory to avoid too much clutter in your main project.
 
-Run git submodule like so, replace third_party/simplestl with any name you want.
+Run git submodule like so, replace third_party/simplecpp with any name you want.
 
 ```
 git submodule add https://github.com/StrideStudios/SimpleCPP third_party/simplecpp
