@@ -3,11 +3,8 @@
 #include <unordered_set>
 #include "Container.h"
 #include "sutil/InitializerList.h"
-#include "../../../SimpleArchive/include/sarch/HashArchive.h"
 
-template <typename TType,
-          std::enable_if_t<sutil::is_hashable_v<TType>, int> = 0
->
+template <typename TType>
 struct TSet : TSingleAssociativeContainer<TType> {
 
 	TSet() = default;
@@ -37,7 +34,7 @@ struct TSet : TSingleAssociativeContainer<TType> {
 
 	virtual const TType& bottom() const override {
 		auto itr = m_Container.end();
-		--itr;
+		std::advance(itr, -1);
 		return *itr;
 	}
 
@@ -173,7 +170,13 @@ protected:
 
 	struct Hasher {
 		size_t operator()(const TType& p) const noexcept {
-			return getHash(p);
+#ifdef USING_SIMPLEARCHIVE
+			CHashArchive archive;
+			archive << p;
+			return archive.get();
+#else
+			return std::hash<TType>()(p);
+#endif
 		}
 	};
 

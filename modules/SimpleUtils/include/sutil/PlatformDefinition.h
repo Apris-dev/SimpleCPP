@@ -1,0 +1,6 @@
+#pragma once
+
+#ifndef USING_MSVC
+#define _CONSTEXPR20 _GLIBCXX20_CONSTEXPR
+#define _CONSTEXPR23 _GLIBCXX23_CONSTEXPR
+#endif

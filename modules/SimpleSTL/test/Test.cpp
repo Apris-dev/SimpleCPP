@@ -201,8 +201,9 @@ enum class MapEnum : uint8_t {
 	NINE
 };
 
-inline size_t getHash(const MapEnum& obj) {
-	return (size_t)obj;
+inline COutputArchive& operator<<(COutputArchive& inArchive, const MapEnum& obj) {
+	inArchive << (size_t)obj;
+	return inArchive;
 }
 
 std::string enumToString(const MapEnum val) {
@@ -395,7 +396,9 @@ int main() {
 
 	for (size_t i = 0; i < 10; ++i) {
 		vec.push(i);
-		std::cout << getHash(vec) << ", " << getHash(vec) << std::endl;
+		CHashArchive archive;
+		archive << vec;
+		std::cout << archive.get() << std::endl;
 	}
 
 	return 0;

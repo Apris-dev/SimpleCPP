@@ -3,11 +3,8 @@
 #include <unordered_map>
 #include "Container.h"
 #include "sutil/InitializerList.h"
-#include "../../../SimpleArchive/include/sarch/HashArchive.h"
 
-template <typename TKeyType, typename TValueType,
-          std::enable_if_t<sutil::is_hashable_v<TKeyType>, int> = 0
->
+template <typename TKeyType, typename TValueType>
 struct TMap : TAssociativeContainer<TKeyType, TValueType> {
 
 	TMap() = default;
@@ -40,7 +37,7 @@ struct TMap : TAssociativeContainer<TKeyType, TValueType> {
 
 	virtual TPair<TKeyType, const TValueType&> bottom() const override {
 		auto itr = m_Container.end();
-		--itr;
+		std::advance(itr, -1);
 		return TPair<TKeyType, const TValueType&>{*itr};
 	}
 
@@ -170,7 +167,13 @@ protected:
 
 	struct Hasher {
 		size_t operator()(const TKeyType& p) const noexcept {
-			return getHash(p);
+#ifdef USING_SIMPLEARCHIVE
+			CHashArchive archive;
+			archive << p;
+			return archive.get();
+#else
+			return std::hash<TType>()(p);
+#endif
 		}
 	};
 

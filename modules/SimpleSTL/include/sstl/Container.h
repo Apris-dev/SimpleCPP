@@ -2,8 +2,14 @@
 
 #include <functional>
 #include <stdexcept>
+#include <algorithm>
+
+#ifdef USING_SIMPLEARCHIVE
+#include "sarch/Archive.h"
+#endif
 
 #include "sutil/Comparison.h"
+#include "sutil/PlatformDefinition.h"
 
 #if CXX_VERSION >= 20
 #include <algorithm>
@@ -26,10 +32,6 @@
 #define DISTANCE(c, x, ...) std::distance(c.begin(), FIND(c, x))
 #define SIZE(c) std::distance(c.begin(), c.end())
 #define SHUFFLE(c, r) std::shuffle(c.begin(), c.end(), r);
-#endif
-
-#ifdef USING_GCC
-#define _CONSTEXPR20 _GLIBCXX20_CONSTEXPR
 #endif
 
 #define CONTAINS(c, x, ...) FIND(c, x, __VA_ARGS__) != c.end()
@@ -193,6 +195,27 @@ struct TSequenceContainer {
 	// Iterates through each element in reverse, const version
 	virtual void forEachReverse(const std::function<void(size_t, const TType&)>& func) const
 		NOT_GUARANTEED
+
+#ifdef USING_SIMPLEARCHIVE
+	friend CInputArchive& operator>>(CInputArchive& inArchive, TSequenceContainer& inValue) {
+		size_t size;
+		inArchive >> size;
+		inValue.resize(size, [&](size_t) {
+			TType obj;
+			inArchive >> obj;
+			return obj;
+		});
+		return inArchive;
+	}
+
+	friend COutputArchive& operator<<(COutputArchive& inArchive, const TSequenceContainer& inValue) {
+		inArchive << inValue.getSize();
+		inValue.forEach([&](size_t, const TType& obj) {
+			inArchive << obj;
+		});
+		return inArchive;
+	}
+#endif
 };
 
 // Designed to be a container with a key for indexing
@@ -278,6 +301,27 @@ struct TAssociativeContainer {
 	// Iterates through each element (Maps do not support reverse iteration)
 	virtual void forEach(const std::function<void(TPair<TKeyType, const TValueType&>)>& func) const
 		GUARANTEED
+
+#ifdef USING_SIMPLEARCHIVE
+	friend CInputArchive& operator>>(CInputArchive& inArchive, TAssociativeContainer& inValue) {
+		size_t size;
+		inArchive >> size;
+		inValue.resize(size, [&] {
+			TPair<TKeyType, TValueType> pair;
+			inArchive >> pair;
+			return pair;
+		});
+		return inArchive;
+	}
+
+	friend COutputArchive& operator<<(COutputArchive& inArchive, const TAssociativeContainer& inValue) {
+		inArchive << inValue.getSize();
+		inValue.forEach([&](TPair<TKeyType, const TValueType&> pair) {
+			inArchive << pair;
+		});
+		return inArchive;
+	}
+#endif
 };
 
 // Designed to be a container without indexing
@@ -369,4 +413,25 @@ struct TSingleAssociativeContainer {
 	// Iterates through each element
 	virtual void forEach(const std::function<void(const TType&)>& func) const
 		GUARANTEED
+
+#ifdef USING_SIMPLEARCHIVE
+	friend CInputArchive& operator>>(CInputArchive& inArchive, TSingleAssociativeContainer& inValue) {
+		size_t size;
+		inArchive >> size;
+		inValue.resize(size, [&] {
+			TType obj;
+			inArchive >> obj;
+			return obj;
+		});
+		return inArchive;
+	}
+
+	friend COutputArchive& operator<<(COutputArchive& inArchive, const TSingleAssociativeContainer& inValue) {
+		inArchive << inValue.getSize();
+		inValue.forEach([&](const TType& obj) {
+			inArchive << obj;
+		});
+		return inArchive;
+	}
+#endif
 };

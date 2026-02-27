@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <cstring>
 
 #include "Archive.h"
 
@@ -25,7 +26,7 @@ public:
 
         while (total >= sizeof(size_t)) {
             size_t chunk;
-            std::memcpy(&chunk, bytes, sizeof(size_t));
+            memcpy(&chunk, bytes, sizeof(size_t));
 
             *this += chunk;
 
@@ -35,7 +36,7 @@ public:
 
         if (total > 0) {
             size_t remainder = 0;
-            std::memcpy(&remainder, bytes, total);
+            memcpy(&remainder, bytes, total);
             *this += remainder;
         }
 

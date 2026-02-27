@@ -1,5 +1,10 @@
 ﻿#pragma once
 
+#ifdef USING_SIMPLEARCHIVE
+#include "sarch/Archive.h"
+#endif
+
+
 struct Abstract {
     Abstract() = default;
     Abstract(const size_t id): id(id) {}
@@ -14,9 +19,12 @@ struct Abstract {
         return fst.id == snd.id;
     }
 
-    friend size_t getHash(const Abstract& obj) {
-        return obj.id;
+#ifdef USING_SIMPLEARCHIVE
+    friend COutputArchive& operator<<(COutputArchive& inArchive, const Abstract& obj) {
+        inArchive << obj.id;
+        return inArchive;
     }
+#endif
 
     int id = 0;
 };
@@ -37,9 +45,12 @@ struct Parent : Abstract{
         return fst.id == snd.id;
     }
 
-    friend size_t getHash(const Parent& obj) {
-        return obj.id;
+#ifdef USING_SIMPLEARCHIVE
+    friend COutputArchive& operator<<(COutputArchive& inArchive, const Parent& obj) {
+        inArchive << obj.id;
+        return inArchive;
     }
+#endif
 };
 
 struct SObject : Parent {
@@ -61,7 +72,10 @@ struct SObject : Parent {
         return fst.id == snd.id;
     }
 
-    friend size_t getHash(const SObject& obj) {
-        return obj.id;
+#ifdef USING_SIMPLEARCHIVE
+    friend COutputArchive& operator<<(COutputArchive& inArchive, const SObject& obj) {
+        inArchive << obj.id;
+        return inArchive;
     }
+#endif
 };

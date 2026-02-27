@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-#include <functional>
+#include <memory>
 
 #include "sdg/DependencyGraph.h"
 
@@ -24,19 +24,20 @@ struct SResource {
 
     explicit SResource(const size_t inId): id(inId) {}
 
-    friend size_t getHash(const SResource& resource) {
-        return resource.id;
+    friend COutputArchive& operator<<(COutputArchive& archive, const SResource& resource) {
+        archive << resource.id;
+        return archive;
     }
 };
 
 int main() {
 
     {
-        TRWDependencyGraph<std::shared_ptr<SObject>, std::shared_ptr<SResource>, TKahnTopologicalSort> graph;
+        TRWDependencyGraph<TShared<SObject>, TShared<SResource>, TKahnTopologicalSort> graph;
 
-        const auto hdrColor = std::make_shared<SResource>(0);
-        const auto depth = std::make_shared<SResource>(1);
-        const auto history = std::make_shared<SResource>(2);
+        const TShared<SResource> hdrColor{0};
+        const TShared<SResource> depth{1};
+        const TShared<SResource> history{2};
 
         // GBuffer writes HDR + depth
         size_t gbufferPass = graph.addNode(std::make_shared<SObject>("gbufferPass"));

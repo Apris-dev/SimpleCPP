@@ -3,9 +3,7 @@
 #include <type_traits>
 #include <memory>
 
-#ifdef USING_GCC
-#define _CONSTEXPR23 _GLIBCXX23_CONSTEXPR
-#endif
+#include "sutil/PlatformDefinition.h"
 
 namespace sstl {
 	template <typename>

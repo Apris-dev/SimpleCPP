@@ -3,10 +3,12 @@
 #include <stdexcept>
 #include <vector>
 #include <unordered_map>
-#include <map>
 #include <unordered_set>
 #include <queue>
-#include "../../../SimpleArchive/include/sarch/HashArchive.h"
+
+#ifdef USING_SIMPLEARCHIVE
+#include "sarch/HashArchive.h"
+#endif
 
 #ifdef USING_SIMPLESTL
 #include "sstl/Vector.h"
@@ -75,21 +77,25 @@ struct TRWDependencyGraph : TDependencyGraph<TType, TTopologicalSorter> {
     using TDependencyGraph<TType, TTopologicalSorter>::sorter;
 
     void addRead(size_t node, const TDependencyType& dependency) {
-        if constexpr (sutil::is_hashable_v<TDependencyType>) {
-            dependencies[node].emplace_back(Access{getHash(dependency), Access::READ});
-        } else {
-    		std::hash<TDependencyType> hashValue;
-            dependencies[node].emplace_back(Access{hashValue(dependency), Access::READ});
-        }
+#ifdef USING_SIMPLEARCHIVE
+        CHashArchive archive;
+        archive << dependency;
+        dependencies[node].emplace_back(Access{archive.get(), Access::READ});
+#else
+        std::hash<TDependencyType> hashValue;
+        dependencies[node].emplace_back(Access{hashValue(dependency), Access::READ});
+#endif
     }
 
     void addWrite(size_t node, const TDependencyType& dependency) {
-        if constexpr (sutil::is_hashable_v<TDependencyType>) {
-            dependencies[node].emplace_back(Access{getHash(dependency), Access::WRITE});
-        } else {
-            std::hash<TDependencyType> hashValue;
-            dependencies[node].emplace_back(Access{hashValue(dependency), Access::WRITE});
-        }
+#ifdef USING_SIMPLEARCHIVE
+        CHashArchive archive;
+        archive << dependency;
+        dependencies[node].emplace_back(Access{archive.get(), Access::WRITE});
+#else
+        std::hash<TDependencyType> hashValue;
+        dependencies[node].emplace_back(Access{hashValue(dependency), Access::WRITE});
+#endif
     }
 
 #ifdef USING_SIMPLESTL

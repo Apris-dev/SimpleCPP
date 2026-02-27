@@ -1,11 +1,11 @@
 #pragma once
 
+#include <cassert>
 #include <charconv>
 #include <string>
 
-#ifdef USING_SIMPLESTL
-#include "sstl/Container.h"
-#endif
+#include "sutil/InitializerList.h"
+#include "sutil/Pair.h"
 
 #ifdef USING_SIMPLEPTR
 #include "sptr/Memory.h"
@@ -102,44 +102,6 @@ public:
 	}
 #endif
 
-#ifdef USING_SIMPLESTL
-	template <typename TType>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TSequenceContainer<TType>& inValue) {
-		size_t size;
-		inArchive >> size;
-		inValue.resize(size, [&](size_t) {
-			TType obj;
-			inArchive >> obj;
-			return obj;
-		});
-		return inArchive;
-	}
-
-	template <typename TType>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TSingleAssociativeContainer<TType>& inValue) {
-		size_t size;
-		inArchive >> size;
-		inValue.resize(size, [&] {
-			TType obj;
-			inArchive >> obj;
-			return obj;
-		});
-		return inArchive;
-	}
-
-	template <typename TKeyType, typename TValueType>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TAssociativeContainer<TKeyType, TValueType>& inValue) {
-		size_t size;
-		inArchive >> size;
-		inValue.resize(size, [&] {
-			TPair<TKeyType, TValueType> pair;
-			inArchive >> pair;
-			return pair;
-		});
-		return inArchive;
-	}
-#endif
-
 	template <typename TKeyType, typename TValueType>
 	friend CInputArchive& operator>>(CInputArchive& inArchive, TPair<TKeyType, TValueType>& pair) {
 		inArchive >> pair.first;
@@ -214,35 +176,6 @@ public:
 	template <typename TType>
 	friend COutputArchive& operator<<(COutputArchive& inArchive, const TUnique<TType>& inValue) {
 		inArchive << *inValue.get();
-		return inArchive;
-	}
-#endif
-
-#ifdef USING_SIMPLESTL
-	template <typename TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TSequenceContainer<TType>& inValue) {
-		inArchive << inValue.getSize();
-		inValue.forEach([&](size_t, const TType& obj) {
-			inArchive << obj;
-		});
-		return inArchive;
-	}
-
-	template <typename TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TSingleAssociativeContainer<TType>& inValue) {
-		inArchive << inValue.getSize();
-		inValue.forEach([&](const TType& obj) {
-			inArchive << obj;
-		});
-		return inArchive;
-	}
-
-	template <typename TKeyType, typename TValueType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TAssociativeContainer<TKeyType, TValueType>& inValue) {
-		inArchive << inValue.getSize();
-		inValue.forEach([&](TPair<TKeyType, const TValueType&> pair) {
-			inArchive << pair;
-		});
 		return inArchive;
 	}
 #endif
