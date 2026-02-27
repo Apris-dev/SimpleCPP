@@ -1,4 +1,7 @@
 #pragma once
+
+#include <type_traits>
+
 #include "Archive.h"
 
 class CHashArchive : public COutputArchive {
@@ -15,7 +18,7 @@ public:
 #endif
     }
 
-    virtual void write(const void* inValue, const size_t inElementSize, const size_t inCount) override {
+    virtual size_t write(const void* inValue, const size_t inElementSize, const size_t inCount) override {
         auto bytes = static_cast<const uint8_t*>(inValue);
 
         size_t total = inElementSize * inCount;
@@ -35,6 +38,9 @@ public:
             std::memcpy(&remainder, bytes, total);
             *this += remainder;
         }
+
+        // Return the total number of bytes written to hash
+        return total;
     }
 
     [[nodiscard]] virtual bool isBinary() override {

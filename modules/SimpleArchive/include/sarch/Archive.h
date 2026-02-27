@@ -15,14 +15,14 @@ class CInputArchive {
 
 protected:
 
-	virtual void read(void* inValue, size_t inElementSize, size_t inCount) = 0;
+	virtual size_t read(void* inValue, size_t inElementSize, size_t inCount) = 0;
 
 	std::string readUntil(const char terminator) {
 		std::string res;
 		char c;
 		while (true) {
-			read(&c, sizeof(char), 1);
-			if (c == terminator)
+			const size_t n = read(&c, sizeof(char), 1);
+			if (n == 0 || c == terminator)
 				break;
 			res += c;
 		}
@@ -133,20 +133,26 @@ public:
 		inArchive >> size;
 		inValue.resize(size, [&] {
 			TPair<TKeyType, TValueType> pair;
-			inArchive >> pair.key;
-			inArchive >> pair.value;
+			inArchive >> pair;
 			return pair;
 		});
 		return inArchive;
 	}
 #endif
+
+	template <typename TKeyType, typename TValueType>
+	friend CInputArchive& operator>>(CInputArchive& inArchive, TPair<TKeyType, TValueType>& pair) {
+		inArchive >> pair.first;
+		inArchive >> pair.second;
+		return inArchive;
+	}
 };
 
 class COutputArchive {
 
 protected:
 
-	virtual void write(const void* inValue, size_t inElementSize, size_t inCount) = 0;
+	virtual size_t write(const void* inValue, size_t inElementSize, size_t inCount) = 0;
 
 	virtual bool isBinary() = 0;
 
@@ -235,13 +241,27 @@ public:
 	friend COutputArchive& operator<<(COutputArchive& inArchive, const TAssociativeContainer<TKeyType, TValueType>& inValue) {
 		inArchive << inValue.getSize();
 		inValue.forEach([&](TPair<TKeyType, const TValueType&> pair) {
-			inArchive << pair.key;
-			inArchive << pair.value;
+			inArchive << pair;
 		});
 		return inArchive;
 	}
 #endif
 
+	template <typename TKeyType, typename TValueType>
+	friend COutputArchive& operator<<(COutputArchive& inArchive, const TPair<TKeyType, TValueType>& pair) {
+		inArchive << pair.first;
+		inArchive << pair.second;
+		return inArchive;
+	}
+
+	// Initializer lists cannot be written to, but can be read from
+	template <typename TType>
+	friend COutputArchive& getHash(COutputArchive& inArchive, const TInitializerList<TType>& list) {
+		inArchive << list.size();
+		for (const auto& obj : list)
+			inArchive << obj;
+		return inArchive;
+	}
 };
 
 class CArchive : public virtual CInputArchive, public virtual COutputArchive {};

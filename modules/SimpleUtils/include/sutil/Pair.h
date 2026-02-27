@@ -2,8 +2,6 @@
 
 #include <utility>
 
-#include "../../../SimpleArchive/include/sarch/HashArchive.h"
-
 // To keep it simpler than the default std::pair, we rewrite it to be more usable.
 // Not used internally in maps, just for Container use for implicit conversion and easy usage
 template <typename TKeyType, typename TValueType>
@@ -184,13 +182,6 @@ struct TPair {
 	template <class TOtherKeyType, class TOtherValueType>
 	friend constexpr bool operator==(const TPair& lhs, const std::pair<TOtherKeyType, TOtherValueType>& rhs) {
     	return lhs.first == rhs.first && lhs.second == rhs.second;
-    }
-
-	friend size_t getHash(const TPair& pair) {
-    	size_t hash = 0;
-    	shash::combine(hash, pair.first);
-    	shash::combine(hash, pair.second);
-    	return hash;
     }
 	
 	TKeyType first;

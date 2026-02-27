@@ -11,7 +11,7 @@ int main() {
     size_t count = 0;
     size_t collisions = 0;
 
-    CFileArchive input(R"(C:\Repos\SimpleCPP\modules\SimpleArchive\test\input.res)", "r");
+    CFileArchive<EOpenType::READ> input(R"(/home/me/Repos/SimpleCPP/modules/SimpleArchive/test/input.res)");
 
     if (!input.isOpen()) return 0;
 

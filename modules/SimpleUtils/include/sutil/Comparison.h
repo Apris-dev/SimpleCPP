@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 /*
  * Contains various comparison type traits to know if a type is comparable
  */
@@ -138,9 +140,9 @@ namespace sutil {
     constexpr bool is_greater_than_or_equal_to_comparable_v = is_greater_than_or_equal_to_comparable<TType, TOtherType>::value;
 #endif
 
-    template <typename TType, typename TOtherType = TType>
+    /*template <typename TType, typename TOtherType = TType>
     constexpr bool is_fully_comparable_v =
-        is_eq<TType, TOtherType>::value;
+        is_eq<TType, TOtherType>::value;*/
 }
 
 // TODO: more hashing types, can use std::hash for the more 'complicated' ones

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cassert>
+#include <cstring>
+#include <map>
 
 #ifdef USING_SIMPLESTL
 #include "sstl/Vector.h"
@@ -10,7 +12,22 @@
 
 #include "Archive.h"
 
+enum class EOpenType : uint8_t {
+	READ = 1,
+	WRITE = 2,
+	BINARY = 4,
+	READWRITE = READ | WRITE,
+	BINARY_READ = READ | BINARY,
+	BINARY_WRITE = WRITE | BINARY,
+	BINARY_READWRITE = READ | WRITE | BINARY
+};
+
+constexpr bool operator&(const EOpenType& fst, const EOpenType& snd) {
+	return (static_cast<uint8_t>(fst) & static_cast<uint8_t>(snd)) != 0;
+}
+
 // An archive that can process files, uses standard c since it is faster
+template <EOpenType TOpenType>
 class CFileArchive : public CArchive {
 
 public:
@@ -20,17 +37,34 @@ public:
 		close();
 	}
 
-	CFileArchive(const char* inFilePath, const char* inMode) {
-		fopen_s(&mFile, inFilePath, inMode);
+	CFileArchive(const char* inFilePath) {
+		std::string mode;
+		if constexpr (TOpenType & EOpenType::READ) { mode += "r"; }
+		if constexpr (TOpenType & EOpenType::WRITE) { mode += "w"; }
+		if constexpr (TOpenType & EOpenType::BINARY) { mode += "b"; }
+
+#ifdef USING_MSVC
+		fopen_s(&mFile, inFilePath, mode.c_str());
+#else
+		mFile = fopen(inFilePath, mode.c_str());
+#endif
 		if (mFile) mIsOpen = true;
 	}
 
-	CFileArchive(const std::string& inFilePath, const char* inMode)
-		: CFileArchive(inFilePath.c_str(), inMode) {}
+	CFileArchive(const std::string& inFilePath)
+		: CFileArchive(inFilePath.c_str()) {}
 
-	[[nodiscard]] virtual bool isBinary() override {
-		return true;
-	}
+	[[nodiscard]] virtual bool isBinary() override { return TOpenType & EOpenType::BINARY; }
+
+	[[nodiscard]] virtual bool isRead() { return TOpenType & EOpenType::READ; }
+
+	[[nodiscard]] virtual bool isWrite() { return TOpenType & EOpenType::WRITE; }
+
+	[[nodiscard]] virtual bool isReadWrite() { return isRead() && isWrite(); }
+
+	[[nodiscard]] virtual bool isReadOnly() { return isRead() && !isWrite(); }
+
+	[[nodiscard]] virtual bool isWriteOnly() { return isWrite() && !isRead(); }
 
 	[[nodiscard]] bool isOpen() const { return mIsOpen; }
 
@@ -66,7 +100,7 @@ public:
 	// Function to read from entire file with any type
 	template <typename TType, class TAlloc = std::allocator<TType>>
 #ifdef USING_SIMPLESTL
-	TVector<TType, TAlloc> readFile(const bool inRemoveBOM = false) {
+	TVector<TType> readFile(const bool inRemoveBOM = false) {
 #else
 	std::vector<TType, TAlloc> readFile(const bool inRemoveBOM = false) {
 #endif
@@ -124,17 +158,17 @@ public:
 
 protected:
 
-	virtual void write(const void* inValue, const size_t inElementSize, const size_t inCount) override {
+	virtual size_t write(const void* inValue, const size_t inElementSize, const size_t inCount) override {
 		assert(isOpen());
-		fwrite(inValue, inElementSize, inCount, mFile);
+		return fwrite(inValue, inElementSize, inCount, mFile);
 	}
 
-	virtual void read(void* inValue, size_t const inElementSize, const size_t inCount) override {
+	virtual size_t read(void* inValue, size_t const inElementSize, const size_t inCount) override {
 		assert(isOpen());
-		fread(inValue, inElementSize, inCount, mFile);
+		return fread(inValue, inElementSize, inCount, mFile);
 	}
 
-private:
+public:
 
 	// The BOM might cause issues with certain interpreters
 	static void removeBOM(void* inData, const size_t inSize) {

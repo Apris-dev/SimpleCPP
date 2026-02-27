@@ -24,6 +24,15 @@ message(STATUS "SimpleCPP: Using CXX version ${SimpleCPP_CXX_STANDARD}")
 
 set(SIMPLECPP_MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    set(SIMPLECPP_COMPILER USING_GCC)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(SIMPLECPP_COMPILER USING_CLANG)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    set(SIMPLECPP_COMPILER USING_MSVC)
+endif ()
+
 # Function for creating simplecpp modules in subdirectories
 function(create_simplecpp_module TARGET_NAME LIBRARY_TYPE)
 
@@ -37,6 +46,9 @@ function(create_simplecpp_module TARGET_NAME LIBRARY_TYPE)
 
     # Create Macro with CXX Version
     target_compile_definitions(SimpleCPP-${TARGET_NAME} ${LIBRARY_TYPE} CXX_VERSION=${SimpleCPP_CXX_STANDARD})
+
+    # Tell target what compiler we are using
+    target_compile_definitions(SimpleCPP-${TARGET_NAME} ${LIBRARY_TYPE} ${SIMPLECPP_COMPILER})
 
     # This tells other libraries that this target has been linked downstream to enable cross-module compatibility without hard requirements
     string(TOUPPER ${TARGET_NAME} UPPER_TARGET_NAME)

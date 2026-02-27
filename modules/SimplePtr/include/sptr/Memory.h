@@ -1,6 +1,11 @@
 ﻿#pragma once
 
+#include <type_traits>
 #include <memory>
+
+#ifdef USING_GCC
+#define _CONSTEXPR23 _GLIBCXX23_CONSTEXPR
+#endif
 
 namespace sstl {
 	template <typename>
@@ -1038,19 +1043,19 @@ template <typename TType>
 struct TSharedFrom {
 	using _Esft_type = TSharedFrom;
 
-	_NODISCARD TShared<TType> getShared() {
+	[[nodiscard]] TShared<TType> getShared() {
 		return TShared<TType>(_Wptr);
 	}
 
-	_NODISCARD TShared<const TType> getShared() const {
+	[[nodiscard]] TShared<const TType> getShared() const {
 		return TShared<const TType>(_Wptr);
 	}
 
-	_NODISCARD TWeak<TType> getWeak() noexcept {
+	[[nodiscard]] TWeak<TType> getWeak() noexcept {
 		return _Wptr;
 	}
 
-	_NODISCARD TWeak<const TType> getWeak() const noexcept {
+	[[nodiscard]] TWeak<const TType> getWeak() const noexcept {
 		return _Wptr;
 	}
 
