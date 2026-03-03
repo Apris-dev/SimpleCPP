@@ -29,6 +29,15 @@ struct Abstract {
     int id = 0;
 };
 
+#ifndef USING_SIMPLEARCHIVE
+template<>
+struct std::hash<Abstract> {
+    size_t operator()(const Abstract& s) const noexcept {
+        return s.id;
+    }
+};
+#endif
+
 struct Parent : Abstract{
     Parent() = default;
     Parent(const size_t id): Abstract(id) {}
@@ -52,6 +61,15 @@ struct Parent : Abstract{
     }
 #endif
 };
+
+#ifndef USING_SIMPLEARCHIVE
+template<>
+struct std::hash<Parent> {
+    size_t operator()(const Parent& s) const noexcept {
+        return s.id;
+    }
+};
+#endif
 
 struct SObject : Parent {
 
@@ -79,3 +97,12 @@ struct SObject : Parent {
     }
 #endif
 };
+
+#ifndef USING_SIMPLEARCHIVE
+template<>
+struct std::hash<SObject> {
+    size_t operator()(const Parent& s) const noexcept {
+        return s.id;
+    }
+};
+#endif

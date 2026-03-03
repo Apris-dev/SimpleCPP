@@ -31,7 +31,11 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(SIMPLECPP_COMPILER USING_CLANG)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     set(SIMPLECPP_COMPILER USING_MSVC)
+else()
+    message(FATAL_ERROR "SimpleCPP: Unknown compiler ${CMAKE_CXX_COMPILER_ID}, please use a supported compiler!")
 endif ()
+
+message(STATUS "SimpleCPP: Using compiler ${CMAKE_CXX_COMPILER_ID}!")
 
 # Function for creating simplecpp modules in subdirectories
 function(create_simplecpp_module TARGET_NAME LIBRARY_TYPE)

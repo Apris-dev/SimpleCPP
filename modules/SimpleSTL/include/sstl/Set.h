@@ -4,6 +4,10 @@
 #include "Container.h"
 #include "sutil/InitializerList.h"
 
+#ifdef USING_SIMPLEARCHIVE
+#include "sarch/HashArchive.h"
+#endif
+
 template <typename TType>
 struct TSet : TSingleAssociativeContainer<TType> {
 

@@ -4,6 +4,10 @@
 #include "Container.h"
 #include "sutil/InitializerList.h"
 
+#ifdef USING_SIMPLEARCHIVE
+#include "sarch/HashArchive.h"
+#endif
+
 template <typename TKeyType, typename TValueType>
 struct TMultiMap : TAssociativeContainer<TKeyType, TValueType> {
 
@@ -172,7 +176,7 @@ protected:
 			archive << p;
 			return archive.get();
 #else
-			return std::hash<TType>()(p);
+			return std::hash<TKeyType>()(p);
 #endif
 		}
 	};

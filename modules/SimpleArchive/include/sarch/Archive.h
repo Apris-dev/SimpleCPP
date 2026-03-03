@@ -7,10 +7,6 @@
 #include "sutil/InitializerList.h"
 #include "sutil/Pair.h"
 
-#ifdef USING_SIMPLEPTR
-#include "sptr/Memory.h"
-#endif
-
 class CInputArchive {
 
 protected:
@@ -84,24 +80,6 @@ public:
 		return inArchive;
 	}
 
-#ifdef USING_SIMPLEPTR
-	template <typename TType,
-		std::enable_if_t<std::is_default_constructible_v<TType>, int> = 0
-	>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TShared<TType>& inValue) {
-		inArchive >> *inValue.get();
-		return inArchive;
-	}
-
-	template <typename TType,
-		std::enable_if_t<std::is_default_constructible_v<TType>, int> = 0
-	>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TUnique<TType>& inValue) {
-		inArchive >> *inValue.get();
-		return inArchive;
-	}
-#endif
-
 	template <typename TKeyType, typename TValueType>
 	friend CInputArchive& operator>>(CInputArchive& inArchive, TPair<TKeyType, TValueType>& pair) {
 		inArchive >> pair.first;
@@ -165,20 +143,6 @@ public:
 		}
 		return inArchive;
 	}
-
-#ifdef USING_SIMPLEPTR
-	template <typename TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TShared<TType>& inValue) {
-		inArchive << *inValue.get();
-		return inArchive;
-	}
-
-	template <typename TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TUnique<TType>& inValue) {
-		inArchive << *inValue.get();
-		return inArchive;
-	}
-#endif
 
 	template <typename TKeyType, typename TValueType>
 	friend COutputArchive& operator<<(COutputArchive& inArchive, const TPair<TKeyType, TValueType>& pair) {

@@ -1,9 +1,19 @@
 ﻿#pragma once
 
 #include <type_traits>
+
+#ifndef USING_MSVC
+#include <bits/unique_ptr.h>
+#include <bits/shared_ptr.h>
+#else
 #include <memory>
+#endif
 
 #include "sutil/PlatformDefinition.h"
+
+#ifdef USING_SIMPLEARCHIVE
+#include "sarch/Archive.h"
+#endif
 
 namespace sstl {
 	template <typename>
@@ -331,10 +341,17 @@ struct TUnique {
 		return fst.m_ptr.get() != snd;
 	}
 
-	_CONSTEXPR23 friend size_t getHash(const TUnique& obj) noexcept {
-		std::hash<std::unique_ptr<TType, sstl::delayed_deleter<TType>>> ptrHash;
-		return ptrHash(obj.m_ptr);
+#ifdef USING_SIMPLEARCHIVE
+	friend CInputArchive& operator>>(CInputArchive& inArchive, TUnique& inValue) {
+		inArchive >> *inValue.get();
+		return inArchive;
 	}
+
+	friend COutputArchive& operator<<(COutputArchive& inArchive, const TUnique& inValue) {
+		inArchive << *inValue.get();
+		return inArchive;
+	}
+#endif
 
 private:
 	template <typename>
@@ -346,6 +363,16 @@ private:
 	std::unique_ptr<TType, sstl::delayed_deleter<TType>> m_ptr = nullptr;
 
 };
+
+#ifndef USING_SIMPLEARCHIVE
+template<typename TType>
+struct std::hash<TUnique<TType>> {
+	size_t operator()(const TUnique<TType>& obj) const noexcept {
+		std::hash<std::unique_ptr<TType>> ptrHash;
+		return ptrHash(obj.m_ptr);
+	}
+};
+#endif
 
 // Template argument deduction for input of a single type
 template <typename TType>
@@ -569,10 +596,17 @@ struct TShared {
 		return fst.m_ptr.get() != snd;
 	}
 
-	_CONSTEXPR23 friend size_t getHash(const TShared& obj) noexcept {
-		std::hash<std::shared_ptr<TType>> ptrHash;
-		return ptrHash(obj.m_ptr);
+#ifdef USING_SIMPLEARCHIVE
+	friend CInputArchive& operator>>(CInputArchive& inArchive, TShared& inValue) {
+		inArchive >> *inValue.get();
+		return inArchive;
 	}
+
+	friend COutputArchive& operator<<(COutputArchive& inArchive, const TShared& inValue) {
+		inArchive << *inValue.get();
+		return inArchive;
+	}
+#endif
 
 private:
 
@@ -588,6 +622,16 @@ private:
 	std::shared_ptr<TType> m_ptr = nullptr;
 
 };
+
+#ifndef USING_SIMPLEARCHIVE
+template<typename TType>
+struct std::hash<TShared<TType>> {
+	size_t operator()(const TShared<TType>& obj) const noexcept {
+		std::hash<std::shared_ptr<TType>> ptrHash;
+		return ptrHash(obj.m_ptr);
+	}
+};
+#endif
 
 // Template argument deduction for input of a single type
 template <typename TType>
@@ -797,13 +841,21 @@ noexcept {
 		return !ptr || ptr.get() != snd;
 	}
 
-	friend size_t getHash(const TWeak& obj) noexcept {
-		if (auto ptr = obj.m_ptr.lock()) {
-			std::hash<std::shared_ptr<TType>> ptrHash;
-			return ptrHash(ptr);
+#ifdef USING_SIMPLEARCHIVE
+	friend CInputArchive& operator>>(CInputArchive& inArchive, TWeak& inValue) {
+		if (auto ptr = inValue.m_ptr.lock()) {
+			inArchive >> *inValue.get();
 		}
-		return 0;
+		return inArchive;
 	}
+
+	friend COutputArchive& operator<<(COutputArchive& inArchive, const TWeak& inValue) {
+		if (auto ptr = inValue.m_ptr.lock()) {
+			inArchive << *inValue.get();
+		}
+		return inArchive;
+	}
+#endif
 
 private:
 
@@ -818,6 +870,19 @@ private:
 
 	std::weak_ptr<TType> m_ptr;
 };
+
+#ifndef USING_SIMPLEARCHIVE
+template<typename TType>
+struct std::hash<TWeak<TType>> {
+	size_t operator()(const TWeak<TType>& obj) const noexcept {
+		if (auto ptr = obj.m_ptr.lock()) {
+			std::hash<std::shared_ptr<TType>> ptrHash;
+			return ptrHash(ptr);
+		}
+		return 0;
+	}
+};
+#endif
 
 template <typename TType>
 template <typename TOtherType>
@@ -1024,10 +1089,17 @@ noexcept {
 		return fst.m_ptr != snd;
 	}
 
-	friend size_t getHash(const TFrail& obj) noexcept {
-		std::hash<TType*> ptrHash;
-		return ptrHash(obj.m_ptr);
+#ifdef USING_SIMPLEARCHIVE
+	friend CInputArchive& operator>>(CInputArchive& inArchive, TFrail& inValue) {
+		inArchive >> inValue.m_ptr;
+		return inArchive;
 	}
+
+	friend COutputArchive& operator<<(COutputArchive& inArchive, const TFrail& inValue) {
+		inArchive << inValue.m_ptr;
+		return inArchive;
+	}
+#endif
 
 private:
 
@@ -1036,6 +1108,16 @@ private:
 
 	TType* m_ptr = nullptr;
 };
+
+#ifndef USING_SIMPLEARCHIVE
+template<typename TType>
+struct std::hash<TFrail<TType>> {
+	size_t operator()(const TFrail<TType>& obj) const noexcept {
+		std::hash<TType*> ptrHash;
+		return ptrHash(obj.m_ptr);
+	}
+};
+#endif
 
 template <typename TType>
 struct TSharedFrom {

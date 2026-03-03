@@ -4,7 +4,7 @@ A Library designed to wrap around the convoluted c++ standard containers and mak
 
 ## Usage
 
-For some basic usage and testing, see [Test.cpp](./test/Test.cpp).  There are Three different types of containers in sstl.
+For some basic usage and testing, see [TestSequenced.cpp](test/TestSequenced.cpp).  There are Three different types of containers in sstl.
  - Sequence Containers
    - Ex: Vector, Deque, List
  - Associative Containers
@@ -14,7 +14,7 @@ For some basic usage and testing, see [Test.cpp](./test/Test.cpp).  There are Th
 
 ### Function
 
-All Container types have similar functions, but have different implementations.  For specifics, refer to [Test.cpp](./test/Test.cpp).
+All Container types have similar functions, but have different implementations.  For specifics, refer to [TestSequenced.cpp](test/TestSequenced.cpp).
 
 Containers can generally be accessed by the following:
 ```
