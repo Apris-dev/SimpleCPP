@@ -43,6 +43,7 @@ struct TPrioritySet : TSingleAssociativeContainer<TType> {
 		return ASSOCIATIVE_CONTAINS(m_Container, obj);
 	}
 
+#ifdef USING_SIMPLEPTR
 	virtual bool contains(typename TUnfurled<TType>::Type* obj) const override {
 		if constexpr (sstl::is_managed_v<TType>) {
 			return CONTAINS(m_Container, obj, TUnfurled<TType>::get);
@@ -50,6 +51,7 @@ struct TPrioritySet : TSingleAssociativeContainer<TType> {
 			return contains(*obj);
 		}
 	}
+#endif
 
 	virtual void resize(const size_t amt) override {
 		if constexpr (std::is_default_constructible_v<TType>) {
@@ -123,6 +125,7 @@ struct TPrioritySet : TSingleAssociativeContainer<TType> {
 		m_Container.erase(obj);
 	}
 
+#ifdef USING_SIMPLEPTR
 	virtual void pop(typename TUnfurled<TType>::Type* obj) override {
 		if constexpr (sstl::is_managed_v<TType>) {
 			ERASE(m_Container, obj, TUnfurled<TType>::get);
@@ -130,6 +133,7 @@ struct TPrioritySet : TSingleAssociativeContainer<TType> {
 			pop(*obj);
 		}
 	}
+#endif
 
 	virtual void transfer(TSingleAssociativeContainer<TType>& otr, TType& obj) override {
 		if (!this->contains(obj)) return;
@@ -142,6 +146,7 @@ struct TPrioritySet : TSingleAssociativeContainer<TType> {
 		}
 	}
 
+#ifdef USING_SIMPLEPTR
 	virtual void transfer(TSingleAssociativeContainer<TType>& otr, typename TUnfurled<TType>::Type* obj) override {
 		if constexpr (sstl::is_managed_v<TType>) {
 			if (!this->contains(obj)) return;
@@ -156,6 +161,7 @@ struct TPrioritySet : TSingleAssociativeContainer<TType> {
 			transfer(otr, *obj);
 		}
 	}
+#endif
 
 	virtual void forEach(const std::function<void(const TType&)>& func) const override {
 		for (auto itr = m_Container.begin(); itr != m_Container.end(); ++itr) {

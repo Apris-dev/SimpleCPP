@@ -15,7 +15,10 @@
 #include <algorithm>
 #endif
 
+#ifdef USING_SIMPLEPTR
 #include "sptr/Memory.h"
+#endif
+
 #include "sutil/Pair.h"
 
 #if CXX_VERSION >= 20
@@ -74,17 +77,21 @@ struct TSequenceContainer {
 	[[nodiscard]] virtual bool contains(const TType& obj) const
 		GUARANTEED
 
+#ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
 	[[nodiscard]] virtual bool contains(typename TUnfurled<TType>::Type* obj) const
 		GUARANTEED
+#endif
 
 	// Find a certain element in the container
 	[[nodiscard]] virtual size_t find(const TType& obj) const
 		GUARANTEED
 
+#ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
 	[[nodiscard]] virtual size_t find(typename TUnfurled<TType>::Type* obj) const
 		GUARANTEED
+#endif
 
 	// Get an element at a specified index
 	// Note: Certain limited containers will ignore index and return top, ex: queue or stack
@@ -146,9 +153,12 @@ struct TSequenceContainer {
 	// Removes a certain object from the container
 	virtual void pop(const TType& obj)
 		GUARANTEED
+
+#ifdef USING_SIMPLEPTR
 	// Version of pop that guarantees raw pointer input
 	virtual void pop(typename TUnfurled<TType>::Type* obj)
 		GUARANTEED
+#endif
 
 	// Moves an object at index from this to container otr
 	virtual void transfer(TSequenceContainer& otr, const size_t index) {
@@ -354,9 +364,11 @@ struct TSingleAssociativeContainer {
 	[[nodiscard]] virtual bool contains(const TType& obj) const
 		GUARANTEED
 
+#ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
 	[[nodiscard]] virtual bool contains(typename TUnfurled<TType>::Type* obj) const
 		GUARANTEED
+#endif
 
 	// Fills container with n defaulted elements
 	virtual void resize(size_t amt)
@@ -397,18 +409,23 @@ struct TSingleAssociativeContainer {
 	// Removes an element from the container
 	virtual void pop(const TType&)
 		GUARANTEED
+
+#ifdef USING_SIMPLEPTR
 	// Version of pop that guarantees raw pointer input, is O(n), unlike normal pop, due to comparisons
 	virtual void pop(typename TUnfurled<TType>::Type* obj)
 		GUARANTEED
+#endif
 
 	// Moves an object from this to container otr
 	// Has to be overridden due to object lifetimes and extraction
 	virtual void transfer(TSingleAssociativeContainer& otr, TType& obj)
 		GUARANTEED
 
+#ifdef USING_SIMPLEPTR
 	// Version of transfer that guarantees raw pointer input
 	virtual void transfer(TSingleAssociativeContainer& otr, typename TUnfurled<TType>::Type* obj)
 		NOT_GUARANTEED
+#endif
 
 	// Iterates through each element
 	virtual void forEach(const std::function<void(const TType&)>& func) const

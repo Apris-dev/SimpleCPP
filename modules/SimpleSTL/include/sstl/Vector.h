@@ -56,6 +56,7 @@ struct TVector : TSequenceContainer<TType> {
 		}
 	}
 
+#ifdef USING_SIMPLEPTR
 	virtual bool contains(typename TUnfurled<TType>::Type* obj) const override {
 		if constexpr (sstl::is_managed_v<TType>) {
 			// Will compare pointers, is always comparable
@@ -64,6 +65,7 @@ struct TVector : TSequenceContainer<TType> {
 			return contains(*obj);
 		}
 	}
+#endif
 
 	virtual size_t find(const TType& obj) const override {
 		if constexpr (sutil::is_equality_comparable_v<TType>) {
@@ -73,6 +75,7 @@ struct TVector : TSequenceContainer<TType> {
 		}
 	}
 
+#ifdef USING_SIMPLEPTR
 	virtual size_t find(typename TUnfurled<TType>::Type* obj) const override {
 		if constexpr (sstl::is_managed_v<TType>) {
 			// Will compare pointers, is always comparable
@@ -81,6 +84,7 @@ struct TVector : TSequenceContainer<TType> {
 			return find(*obj);
 		}
 	}
+#endif
 
 	virtual TType& get(size_t index) override {
 		return m_Container[index];
@@ -191,6 +195,7 @@ struct TVector : TSequenceContainer<TType> {
 		}
 	}
 
+#ifdef USING_SIMPLEPTR
 	virtual void pop(typename TUnfurled<TType>::Type* obj) override {
 		if constexpr (sstl::is_managed_v<TType>) {
 			// Will compare pointers, is always comparable
@@ -199,6 +204,7 @@ struct TVector : TSequenceContainer<TType> {
 			pop(*obj);
 		}
 	}
+#endif
 
 	virtual void forEach(const std::function<void(size_t, TType&)>& func) override {
 		size_t i = 0;

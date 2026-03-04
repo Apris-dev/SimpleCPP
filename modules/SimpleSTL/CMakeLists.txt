@@ -31,4 +31,3 @@
 )
 
 link_simplecpp_module(SimpleSTL INTERFACE SimpleUtils)
-link_simplecpp_module(SimpleSTL INTERFACE SimplePtr)

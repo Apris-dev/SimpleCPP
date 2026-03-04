@@ -67,6 +67,7 @@ struct TMinHeap : TVector<TType> {
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 
+#ifdef USING_SIMPLEPTR
 	virtual void pop(typename TUnfurled<TType>::Type* obj) override {
 		if constexpr (sstl::is_managed_v<TType>) {
 			ERASE(m_Container, obj, TUnfurled<TType>::get);
@@ -75,6 +76,7 @@ struct TMinHeap : TVector<TType> {
 			pop(*obj);
 		}
 	}
+#endif
 
 protected:
 

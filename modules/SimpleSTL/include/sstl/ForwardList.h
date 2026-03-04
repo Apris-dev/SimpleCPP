@@ -43,6 +43,7 @@ struct TForwardList : TSequenceContainer<TType> {
 		}
 	}
 
+#ifdef USING_SIMPLEPTR
 	virtual bool contains(typename TUnfurled<TType>::Type* obj) const override {
 		if constexpr (sstl::is_managed_v<TType>) {
 			// Will compare pointers, is always comparable
@@ -51,6 +52,7 @@ struct TForwardList : TSequenceContainer<TType> {
 			return contains(*obj);
 		}
 	}
+#endif
 
 	virtual size_t find(const TType& obj) const override {
 		if constexpr (sutil::is_equality_comparable_v<TType>) {
@@ -60,6 +62,7 @@ struct TForwardList : TSequenceContainer<TType> {
 		}
 	}
 
+#ifdef USING_SIMPLEPTR
 	virtual size_t find(typename TUnfurled<TType>::Type* obj) const override {
 		if constexpr (sstl::is_managed_v<TType>) {
 			// Will compare pointers, is always comparable
@@ -68,6 +71,7 @@ struct TForwardList : TSequenceContainer<TType> {
 			return find(*obj);
 		}
 	}
+#endif
 
 	virtual TType& get(size_t index) override {
 		auto itr = m_Container.begin();
@@ -183,6 +187,7 @@ struct TForwardList : TSequenceContainer<TType> {
 		}
 	}
 
+#ifdef USING_SIMPLEPTR
 	virtual void pop(typename TUnfurled<TType>::Type* obj) override {
 		if constexpr (sstl::is_managed_v<TType>) {
 			// Will compare pointers, is always comparable
@@ -191,6 +196,7 @@ struct TForwardList : TSequenceContainer<TType> {
 			pop(*obj);
 		}
 	}
+#endif
 
 	virtual void transfer(TSequenceContainer<TType>& otr, const size_t index) override {
 		// Forward List transfer can use splicing
