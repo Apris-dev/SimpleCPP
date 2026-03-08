@@ -19,6 +19,10 @@ public:
 #endif
     }
 
+    size_t write(const void* inValue, const size_t inElementSize) override {
+        return write(inValue, inElementSize, 1);
+    }
+
     virtual size_t write(const void* inValue, const size_t inElementSize, const size_t inCount) override {
         auto bytes = static_cast<const uint8_t*>(inValue);
 
@@ -42,10 +46,6 @@ public:
 
         // Return the total number of bytes written to hash
         return total;
-    }
-
-    [[nodiscard]] virtual bool isBinary() override {
-        return false;
     }
 
 private:

@@ -1,5 +1,5 @@
 ﻿# CMake Parent File Requirements
-cmake_minimum_required(VERSION 3.31...4.2)
+cmake_minimum_required(VERSION 3.28...4.2)
 
 # Project Definition
 project(
@@ -22,20 +22,28 @@ endif()
 
 message(STATUS "SimpleCPP: Using CXX version ${SimpleCPP_CXX_STANDARD}")
 
-set(SIMPLECPP_MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/modules")
-
+# CMAKE_SOURCE_DIR is the top level cmake file, in this case, we can get the project that depends on simplecpp
+set(PROJECT_ROOT_DIR ${CMAKE_SOURCE_DIR})
+# CMAKE_CURRENT_SOURCE_DIR is the current level cmake file, so in this case, the root of simplecpp
+set(SIMPLECPP_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+# Create a modules directory from our root directory
+set(SIMPLECPP_MODULE_DIR "${SIMPLECPP_ROOT_DIR}/modules")
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    set(SIMPLECPP_COMPILER USING_GCC)
+    set(SIMPLECPP_COMPILER GCC)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(SIMPLECPP_COMPILER USING_CLANG)
+    set(SIMPLECPP_COMPILER CLANG)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    set(SIMPLECPP_COMPILER USING_MSVC)
+    set(SIMPLECPP_COMPILER MSVC)
 else()
     message(FATAL_ERROR "SimpleCPP: Unknown compiler ${CMAKE_CXX_COMPILER_ID}, please use a supported compiler!")
 endif ()
 
-message(STATUS "SimpleCPP: Using compiler ${CMAKE_CXX_COMPILER_ID}!")
+# Set the used platform and version for SimpleCPP
+string(TOUPPER ${CMAKE_SYSTEM_NAME} SIMPLECPP_PLATFORM)
+set(SIMPLECPP_PLATFORM_VERSION ${CMAKE_SYSTEM_VERSION})
+
+message(STATUS "SimpleCPP: Using compiler ${SIMPLECPP_COMPILER} on ${SIMPLECPP_PLATFORM} ${SIMPLECPP_PLATFORM_VERSION}!")
 
 # Function for creating simplecpp modules in subdirectories
 function(create_simplecpp_module TARGET_NAME LIBRARY_TYPE)
@@ -52,7 +60,17 @@ function(create_simplecpp_module TARGET_NAME LIBRARY_TYPE)
     target_compile_definitions(SimpleCPP-${TARGET_NAME} ${LIBRARY_TYPE} CXX_VERSION=${SimpleCPP_CXX_STANDARD})
 
     # Tell target what compiler we are using
-    target_compile_definitions(SimpleCPP-${TARGET_NAME} ${LIBRARY_TYPE} ${SIMPLECPP_COMPILER})
+    target_compile_definitions(SimpleCPP-${TARGET_NAME} ${LIBRARY_TYPE} USING_${SIMPLECPP_COMPILER})
+
+    # Tell target the platform and platform version we are using
+    target_compile_definitions(SimpleCPP-${TARGET_NAME} ${LIBRARY_TYPE} USING_${SIMPLECPP_PLATFORM})
+    target_compile_definitions(SimpleCPP-${TARGET_NAME} ${LIBRARY_TYPE} PLATFORM_VERSION="${SIMPLECPP_PLATFORM_VERSION}")
+
+    # Tell target the root directory of the project, (the project using simplecpp)
+    target_compile_definitions(SimpleCPP-SimpleUtils INTERFACE PROJECT_ROOT_DIR="${PROJECT_ROOT_DIR}")
+
+    # Get the root directory of simplecpp
+    target_compile_definitions(SimpleCPP-SimpleUtils INTERFACE SIMPLECPP_ROOT_DIR="${SIMPLECPP_ROOT_DIR}")
 
     # This tells other libraries that this target has been linked downstream to enable cross-module compatibility without hard requirements
     string(TOUPPER ${TARGET_NAME} UPPER_TARGET_NAME)
@@ -129,8 +147,7 @@ if(SIMPLECPP_TEST)
     enable_testing()
 endif()
 
-add_library(SimpleCPP INTERFACE
-        modules/SimpleUtils/include/sutil/PlatformDefinition.h)
+add_library(SimpleCPP INTERFACE)
 
 # Create a list of modules so compile definitions can be created in each module
 set(SIMPLECPP_MODULES

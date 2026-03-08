@@ -191,9 +191,9 @@ struct TUnique {
 		}
 	}
 
-	_CONSTEXPR23 TUnique(nullptr_t) noexcept {}
+	_CONSTEXPR23 TUnique(std::nullptr_t) noexcept {}
 
-	_CONSTEXPR23 TUnique& operator=(nullptr_t) noexcept {
+	_CONSTEXPR23 TUnique& operator=(std::nullptr_t) noexcept {
 		m_ptr = nullptr;
 		return *this;
 	}
@@ -417,9 +417,9 @@ struct TShared {
 		}
 	}
 
-	_CONSTEXPR23 TShared(nullptr_t) noexcept {}
+	_CONSTEXPR23 TShared(std::nullptr_t) noexcept {}
 
-	_CONSTEXPR23 TShared& operator=(nullptr_t) noexcept {
+	_CONSTEXPR23 TShared& operator=(std::nullptr_t) noexcept {
 		m_ptr = nullptr;
 		return *this;
 	}
@@ -667,9 +667,9 @@ struct TWeak {
 
 	TWeak() = default;
 
-	TWeak(nullptr_t) noexcept {}
+	TWeak(std::nullptr_t) noexcept {}
 
-	TWeak& operator=(nullptr_t) noexcept {
+	TWeak& operator=(std::nullptr_t) noexcept {
 		m_ptr.reset();
 		return *this;
 	}
@@ -945,9 +945,9 @@ struct TFrail {
 
 	TFrail(TType* ptr): m_ptr(ptr) {}
 
-	TFrail(nullptr_t) noexcept {}
+	TFrail(std::nullptr_t) noexcept {}
 
-	TFrail& operator=(nullptr_t) noexcept {
+	TFrail& operator=(std::nullptr_t) noexcept {
 		m_ptr = nullptr;
 		return *this;
 	}

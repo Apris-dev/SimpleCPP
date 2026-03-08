@@ -1,17 +1,50 @@
-#include <filesystem>
 #include <iostream>
-#include <fstream>
-#include <unordered_set>
+#include <filesystem>
 
 #include "sarch/FileArchive.h"
 #include "sarch/HashArchive.h"
+#include "sarch/PathArchive.h"
 
 int main() {
 
-    size_t count = 0;
+    /*CStringArchive archive;
+
+    archive << 5;
+    archive << "test";*/
+
+    CPathArchive path;
+    path << SIMPLECPP_ROOT_DIR << "modules" << "SimpleArchive" << "test" << "input.res";
+
+    {
+        CFileArchive<EOpenType::WRITE> fileArchive(path.get());
+
+        const size_t v = 5;
+        fileArchive << v;
+        fileArchive << "test";
+    }
+
+    {
+        CFileArchive<EOpenType::READ> fileArchive(path.get());
+
+        //size_t v;
+        //fileArchive >> v;
+        std::string s;
+        fileArchive >> s;
+
+        std::cout << s << std::endl;
+    }
+
+    /*CPathArchive archive;
+
+    archive << SIMPLECPP_ROOT_DIR;
+    archive << "modules" << "SimpleArchive" << "test" << "input.res";
+
+    std::cout << "out: " << archive.get() << std::endl;*/
+
+    /*size_t count = 0;
     size_t collisions = 0;
 
-    CFileArchive<EOpenType::READ> input(R"(C:/Repos/SimpleCPP/modules/SimpleArchive/test/input.res)");
+    CFileArchive<EOpenType::READ> input(std::string(SIMPLECPP_ROOT_DIR) + "/modules/SimpleArchive/test/input.res");
 
     if (!input.isOpen()) return 0;
 
@@ -44,6 +77,6 @@ int main() {
     }
     std::cout << "Total: " << count << " With " << (count - seenStrings.size()) << " Duplicates" << std::endl;
     std::cout << "Collision # is " << collisions << " of " << seenStrings.size() << std::endl;
-
+*/
     return 0;
 }
