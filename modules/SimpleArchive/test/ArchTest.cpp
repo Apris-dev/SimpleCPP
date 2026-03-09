@@ -11,16 +11,16 @@ int main() {
     path << SIMPLECPP_ROOT_DIR << "modules" << "SimpleArchive" << "test" << "input.dat";
 
     {
-        CFileArchive<EOpenType::WRITE> fileArchive(path.get());
+        CFileArchive<EOpenType::BINARY_WRITE> fileArchive(path.get());
 
         const size_t v = 5;
         fileArchive << v;
-        fileArchive << "test" << "\n";
+        fileArchive << "test";
         fileArchive << "test2";
     }
 
     {
-        CFileArchive<EOpenType::READ> fileArchive(path.get());
+        CFileArchive<EOpenType::BINARY_READ> fileArchive(path.get());
 
         size_t v;
         fileArchive >> v;

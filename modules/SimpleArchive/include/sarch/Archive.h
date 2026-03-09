@@ -10,6 +10,7 @@
 #include "sutil/Pair.h"
 #include "sutil/PlatformDefinition.h"
 
+//TODO: delimiter template?
 class CBaseStringArchive {
 
 protected:
@@ -192,10 +193,7 @@ public:
 	}
 
 	friend CInputArchive& operator>>(CInputArchive& inArchive, std::string& inValue) {
-		size_t size;
-		inArchive >> size;
-		inValue.resize(size);
-		inArchive.read(inValue.data(), sizeof(std::string::value_type), size);
+		inValue = inArchive.readUntil('\0');
 		return inArchive;
 	}
 
@@ -245,8 +243,9 @@ public:
 	}
 
 	friend COutputArchive& operator<<(COutputArchive& inArchive, const std::string& inValue) {
-		inArchive << inValue.size();
 		inArchive.write(inValue.data(), sizeof(std::string::value_type), inValue.size());
+		constexpr static char terminator = '\0';
+		inArchive.write(&terminator, sizeof(terminator));
 		return inArchive;
 	}
 
