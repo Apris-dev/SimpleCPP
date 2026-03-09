@@ -7,8 +7,26 @@
 
 int main() {
 
-    CPathArchive path;
-    path << SIMPLECPP_ROOT_DIR << "modules" << "SimpleArchive" << "test" << "input.dat";
+    {
+        CPathArchive pathTest(SIMPLECPP_ROOT_DIR);
+        pathTest << "test";
+
+        std::cout << pathTest.get() << std::endl;
+
+        std::cout << std::endl;
+
+        std::string v;
+        pathTest >> v;
+
+        std::cout << pathTest.get() << std::endl;
+        std::cout << v << std::endl;
+
+        return 0;
+    }
+
+
+    CPathArchive path(SIMPLECPP_ROOT_DIR);
+    path << "modules" << "SimpleArchive" << "test" << "input.dat";
 
     {
         CFileArchive<EOpenType::BINARY_WRITE> fileArchive(path.get());

@@ -1,18 +1,50 @@
 #pragma once
 #include "Archive.h"
 
-class CPathArchive : public CStringArchive {
+class CPathArchive : public CBaseStringArchive {
+
+public:
+    explicit CPathArchive(const std::string& initialPath = {}) {
+        CPathArchive::write(initialPath);
+    }
+
+    std::string get() const override {
+        return str;
+    }
 protected:
 
     virtual size_t read(std::string& outValue) override {
-        return CStringArchive::read(outValue);
+        const auto loc = str.find_last_of(PATH_SEPARATOR, str.size() - 2) + 1;
+        if (loc == std::string::npos) {
+            return 0;
+        }
+        outValue = str.substr(loc);
+        str.erase(loc);
+
+        return 0;
+    }
+
+    size_t read(const size_t amount) override {
+	    str.erase(0, amount);
+        return 0;
     }
 
     virtual size_t write(const std::string& inValue) override {
-        if (inValue.find('.') != std::string::npos) {
-            return CStringArchive::write(inValue);
+        str += inValue;
+        // Force Replacement of proper path separator
+#if PATH_SEPARATOR == '\\'
+        std::replace(str.begin(), str.end(), '/', '\\');
+#elif PATH_SEPARATOR == '/'
+        std::replace(str.begin(), str.end(), '\\', '/');
+#endif
+        if (str.find('.') == std::string::npos) {
+            str += PATH_SEPARATOR;
         }
-        return CStringArchive::write(inValue + PATH_SEPARATOR);
+        return 0;
     }
+
+private:
+
+    std::string str;
 
 };
