@@ -4,84 +4,81 @@
 #include <charconv>
 #include <sstream>
 #include <string>
+#include <functional>
 
 #include "sutil/InitializerList.h"
 #include "sutil/Pair.h"
 #include "sutil/PlatformDefinition.h"
 
-class CStringArchive {
+class CBaseStringArchive {
 
 protected:
 
-	virtual size_t write(const std::string& inValue) {
-		str += inValue;
-		return 0;
-	}
+	[[nodiscard]] virtual std::string get() const = 0;
 
-	virtual size_t read(std::string& outValue) {
-		const auto loc = str.find(LINE_ENDING);
-		outValue = str.substr(0, loc);
-		str = str.substr(1, loc);
-		return 0;
-	}
+	virtual size_t write(const std::string& inValue) = 0;
+
+	virtual size_t read(std::string& outValue) = 0;
+
+	virtual size_t read(size_t amount) = 0;
 
 public:
 
-	virtual ~CStringArchive() = default;
+	virtual ~CBaseStringArchive() = default;
 
-	[[nodiscard]] virtual const std::string& get() const { return str; }
-
-	friend CStringArchive& operator>>(CStringArchive& inArchive, std::string& inValue) {
+	friend CBaseStringArchive& operator>>(CBaseStringArchive& inArchive, std::string& inValue) {
 		inArchive.read(inValue);
 		return inArchive;
 	}
 
-	friend CStringArchive& operator<<(CStringArchive& inArchive, const std::string& inValue) {
+	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const std::string& inValue) {
 		inArchive.write(inValue);
 		return inArchive;
 	}
 
-	// TODO: temporarily remove this until a better solution arises
-	/*template <typename TType,
+	template <typename TType,
 		std::enable_if_t<std::is_arithmetic_v<TType>, int> = 0
 	>
-	friend CStringArchive& operator>>(CStringArchive& inArchive, TType& inValue) {
-		std::string string;
-		inArchive >> string;
-		inValue = std::stoull(string);
+	friend CBaseStringArchive& operator>>(CBaseStringArchive& inArchive, TType& inValue) {
+		std::string str = inArchive.get();
+		const std::from_chars_result result = std::from_chars(str.data(), str.data() + str.size(), inValue);
+		if (result.ec == std::errc()) {
+			const size_t loc = result.ptr - str.data();
+			inArchive.read(loc);
+		}
 		return inArchive;
-	}*/
+	}
 
 	template <typename TType,
 		std::enable_if_t<std::is_arithmetic_v<TType>, int> = 0
 	>
-	friend CStringArchive& operator<<(CStringArchive& inArchive, const TType& inValue) {
+	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TType& inValue) {
 		inArchive << std::to_string(inValue);
 		return inArchive;
 	}
 
-	/*template <typename TType,
+	template <typename TType,
 		std::enable_if_t<std::is_enum_v<TType>, int> = 0
 	>
-	friend CStringArchive& operator>>(CStringArchive& inArchive, TType& inEnum) {
+	friend CBaseStringArchive& operator>>(CBaseStringArchive& inArchive, TType& inEnum) {
 		using EnumType = std::underlying_type_t<TType>;
 		EnumType value;
 		inArchive >> value;
 		inEnum = static_cast<TType>(value);
 		return inArchive;
-	}*/
+	}
 
 	template <typename TType,
 		std::enable_if_t<std::is_enum_v<TType>, int> = 0
 	>
-	friend CStringArchive& operator<<(CStringArchive& inArchive, const TType& inEnum) {
+	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TType& inEnum) {
 		using EnumType = std::underlying_type_t<TType>;
 		inArchive << static_cast<EnumType>(inEnum);
 		return inArchive;
 	}
 
 	template <typename TType>
-	friend CStringArchive& operator>>(CStringArchive& inArchive, TType*& ptr) {
+	friend CBaseStringArchive& operator>>(CBaseStringArchive& inArchive, TType*& ptr) {
 		size_t value;
 		inArchive >> value;
 		ptr = reinterpret_cast<TType*>(value);
@@ -89,13 +86,13 @@ public:
 	}
 
 	template <typename TType>
-	friend CStringArchive& operator<<(CStringArchive& inArchive, const TType*& ptr) {
+	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TType*& ptr) {
 		inArchive << reinterpret_cast<size_t>(ptr);
 		return inArchive;
 	}
 
 	template <typename TKeyType, typename TValueType>
-	friend CStringArchive& operator<<(CStringArchive& inArchive, const TPair<TKeyType, TValueType>& pair) {
+	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TPair<TKeyType, TValueType>& pair) {
 		inArchive << pair.first;
 		inArchive << pair.second;
 		return inArchive;
@@ -103,7 +100,7 @@ public:
 
 	// Initializer lists cannot be written to, but can be read from
 	template <typename TType>
-	friend CStringArchive& operator<<(CStringArchive& inArchive, const TInitializerList<TType>& list) {
+	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TInitializerList<TType>& list) {
 		for (const auto& obj : list)
 			inArchive << obj;
 		return inArchive;
@@ -111,7 +108,34 @@ public:
 
 protected:
 
+};
+
+class CStringArchive : public CBaseStringArchive {
+
+public:
+
+	[[nodiscard]] virtual std::string get() const override { return str; }
+
+protected:
+
+	virtual size_t write(const std::string& inValue) override {
+		str += inValue;
+		return 0;
+	}
+
+	virtual size_t read(std::string& outValue)  override {
+		const auto loc = str.find(LINE_ENDING);
+		outValue = str.substr(0, loc);
+		return read(loc);
+	}
+
+	size_t read(const size_t amount) override {
+		str.erase(0, amount);
+		return 0;
+	}
+
 	std::string str;
+
 };
 
 class CInputArchive {

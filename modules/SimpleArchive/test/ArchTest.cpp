@@ -7,11 +7,6 @@
 
 int main() {
 
-    /*CStringArchive archive;
-
-    archive << 5;
-    archive << "test";*/
-
     CPathArchive path;
     path << SIMPLECPP_ROOT_DIR << "modules" << "SimpleArchive" << "test" << "input.res";
 
@@ -26,11 +21,12 @@ int main() {
     {
         CFileArchive<EOpenType::READ> fileArchive(path.get());
 
-        //size_t v;
-        //fileArchive >> v;
+        size_t v;
+        fileArchive >> v;
         std::string s;
         fileArchive >> s;
 
+        std::cout << v << std::endl;
         std::cout << s << std::endl;
     }
 

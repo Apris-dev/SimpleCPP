@@ -112,11 +112,18 @@ protected:
 };
 
 template <EOpenType TOpenType>
-class CStringFileArchive : public CBaseFileArchive<TOpenType>, public CStringArchive {
+class CStringFileArchive : public CBaseFileArchive<TOpenType>, public CBaseStringArchive {
 
 public:
 
 	using CBaseFileArchive<TOpenType>::CBaseFileArchive;
+
+	std::string get() const override {
+		auto loc = ftell(this->mFile);
+		auto res = readFile();
+		fseek(this->mFile, loc, SEEK_SET);
+		return res;
+	}
 
 	[[nodiscard]] std::string readLine(const bool inRemoveBOM = true) const {
 		assert(this->isOpen());
@@ -147,7 +154,7 @@ public:
 	// Function to read from entire file with any type
 	template <typename TType, class TAlloc = std::allocator<TType>>
 #ifdef USING_SIMPLESTL
-	TVector<TType> readFile(const bool inRemoveBOM = false) {
+	TVector<TType> readFile(const bool inRemoveBOM = false) const {
 #else
 	std::vector<TType, TAlloc> readFile(const bool inRemoveBOM = false) {
 #endif
@@ -160,18 +167,20 @@ public:
 		std::vector<TType, TAlloc> vector(fileSize / sizeof(TType));
 		const size_t bytesRead = fread(vector.data(), sizeof(TType), vector.size(), this->mFile);
 
-		if (inRemoveBOM) removeBOM(vector.data(), bytesRead);
-
-		// Since every part of the file is read, we might as well close it
-		this->close();
+		if (inRemoveBOM) this->removeBOM(vector.data(), bytesRead);
 
 		return vector;
 	}
 
 	// Read into char vector, then reinterpret to a string
-	std::string readFile(const bool inRemoveBOM = false) {
+	std::string readFile(const bool inRemoveBOM = false) const {
+#ifdef USING_SIMPLESTL
+		TVector<char> vector = readFile<char>(inRemoveBOM);
+		return {vector.data(), vector.getSize()};
+#else
 		std::vector<char> vector = readFile<char>(inRemoveBOM);
 		return {vector.data(), vector.size()};
+#endif
 	}
 
 #ifdef USING_SIMPLESTL
@@ -180,9 +189,6 @@ public:
 	void writeFile(TVector<TType> vector) {
 		assert(this->isOpen());
 		fwrite(vector.data(), sizeof(TType), vector.getSize(), this->mFile);
-
-		// Since every part of the file is read, we might as well close it
-		this->close();
 	}
 #else
 	// Function to write to entire file with any type
@@ -190,17 +196,20 @@ public:
 	void writeFile(std::vector<TType, TAlloc> vector) {
 		assert(this->isOpen());
 		fwrite(vector.data(), sizeof(TType), vector.size(), this->mFile);
-
-		// Since every part of the file is read, we might as well close it
-		this->close();
 	}
 #endif
 
 protected:
 
-	virtual size_t read(std::string& outValue) {
+	virtual size_t read(std::string& outValue) override {
 		assert(this->isOpen());
 		outValue = readLine();
+		return 0;
+	}
+
+	size_t read(const size_t amount) override {
+		assert(this->isOpen());
+		fseek(this->mFile, amount, SEEK_SET);
 		return 0;
 	}
 

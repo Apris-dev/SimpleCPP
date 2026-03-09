@@ -17,5 +17,5 @@
 #define LINE_ENDING "\r\n"
 #else
 #define PATH_SEPARATOR '/'
-#define LINE_ENDING "\n"
+#define LINE_ENDING '\n'
 #endif
