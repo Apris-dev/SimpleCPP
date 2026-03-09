@@ -67,6 +67,14 @@ public:
 
 	[[nodiscard]] bool isEnd() const { return feof(mFile); }
 
+	[[nodiscard]] size_t getFileSize() const {
+		const auto loc = ftell(mFile);
+		fseek(mFile, 0, SEEK_END);
+		const auto res = ftell(mFile);
+		fseek(mFile, loc, SEEK_SET);
+		return res;
+	}
+
 	void close() {
 		if (isOpen()) {
 			fclose(mFile);
@@ -160,9 +168,8 @@ public:
 #endif
 		assert(this->isOpen());
 
-		fseek(this->mFile, 0L, SEEK_END);
-		const auto fileSize = ftell(this->mFile);
-		fseek(this->mFile, 0L, SEEK_SET);
+		const auto fileSize = this->getFileSize();
+		fseek(this->mFile, 0, SEEK_SET);
 
 		std::vector<TType, TAlloc> vector(fileSize / sizeof(TType));
 		const size_t bytesRead = fread(vector.data(), sizeof(TType), vector.size(), this->mFile);
