@@ -85,11 +85,19 @@ public:
 protected:
 
 	// The BOM might cause issues with certain interpreters
-	static void removeBOM(void* inData, const size_t inSize) {
+	static void removeBOM(char* inData, const size_t inSize) {
+		if (inSize <= 3) return;
 		constexpr static unsigned char BOM[] = { 0xEF, 0xBB, 0xBF };
-		if (inSize > 3)
-			if (!memcmp(inData, BOM, 3))
-				memset(inData, ' ', 3);
+		if (!memcmp(inData, BOM, 3))
+			memset(inData, ' ', 3);
+	}
+
+	// Remove the end of this line, assumes only a single line was given
+	static void removeEOL(char* inData, const size_t inSize) {
+		if (inSize == 0) return;
+		constexpr static unsigned char EOL[] = LINE_ENDING;
+		if (!memcmp(inData + inSize - 1, EOL, 1))
+			memset(inData + inSize - 1, ' ', 1);
 	}
 
 	FILE* mFile = nullptr;
@@ -148,6 +156,8 @@ public:
 		}
 
 		if (inRemoveBOM) this->removeBOM(line.data(), line.size());
+
+		this->removeEOL(line.data(), line.size());
 
 		return line;
 	}

@@ -8,14 +8,15 @@
 int main() {
 
     CPathArchive path;
-    path << SIMPLECPP_ROOT_DIR << "modules" << "SimpleArchive" << "test" << "input.res";
+    path << SIMPLECPP_ROOT_DIR << "modules" << "SimpleArchive" << "test" << "input.dat";
 
     {
         CFileArchive<EOpenType::WRITE> fileArchive(path.get());
 
         const size_t v = 5;
         fileArchive << v;
-        fileArchive << "test";
+        fileArchive << "test" << "\n";
+        fileArchive << "test2";
     }
 
     {
@@ -25,9 +26,12 @@ int main() {
         fileArchive >> v;
         std::string s;
         fileArchive >> s;
+        std::string s2;
+        fileArchive >> s2;
 
         std::cout << v << std::endl;
         std::cout << s << std::endl;
+        std::cout << s2 << std::endl;
     }
 
     /*CPathArchive archive;
