@@ -14,12 +14,12 @@ public:
 protected:
 
     virtual size_t read(std::string& outValue) override {
-        const auto loc = str.find_last_of(PATH_SEPARATOR, str.size() - 2) + 1;
+        const auto loc = str.find_last_of(PATH_SEPARATOR, str.size() - 2);
         if (loc == std::string::npos) {
             return 0;
         }
-        outValue = str.substr(loc);
-        str.erase(loc);
+        outValue = str.substr(loc + 1, str.size() - loc - 2);
+        str.erase(loc + 1);
 
         return 0;
     }

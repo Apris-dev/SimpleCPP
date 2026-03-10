@@ -21,7 +21,6 @@ int main() {
         std::cout << pathTest.get() << std::endl;
         std::cout << v << std::endl;
 
-        return 0;
     }
 
 
