@@ -5,7 +5,16 @@
 #include "sarch/HashArchive.h"
 #include "sarch/PathArchive.h"
 
+namespace fs = std::filesystem;
+
 int main() {
+
+    {
+        auto path = fs::current_path();
+        std::cout << "Path: " << path << std::endl;
+        auto temp = fs::temp_directory_path();
+        std::cout << "Tmp Path: " << temp << std::endl;
+    }
 
     {
         CPathArchive pathTest(SIMPLECPP_ROOT_DIR);

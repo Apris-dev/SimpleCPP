@@ -4,4 +4,5 @@ create_simplecpp_module(SimpleUtils INTERFACE
         include/sutil/InitializerList.h
         include/sutil/Pair.h
         include/sutil/Threading.h
+        include/sutil/Paths.h
 )
