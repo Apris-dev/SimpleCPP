@@ -7,7 +7,7 @@
 extern std::string gSimpleCPPRoot;
 
 #ifdef SIMPLEUTILS_PATH_IMPLEMENTATION
-std::string gSimpleCPPRoot = std::filesystem::current_path();
+std::string gSimpleCPPRoot = std::filesystem::current_path().string();
 #endif
 
-inline std::string gTempPath = std::filesystem::temp_directory_path();
+inline std::string gTempPath = std::filesystem::temp_directory_path().string();

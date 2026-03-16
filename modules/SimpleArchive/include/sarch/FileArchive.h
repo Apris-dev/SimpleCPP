@@ -4,6 +4,8 @@
 #include <cstring>
 #include <map>
 
+#include "PathArchive.h"
+
 #ifdef USING_SIMPLESTL
 #include "sstl/Vector.h"
 #else
@@ -36,6 +38,8 @@ public:
 	virtual ~CBaseFileArchive() {
 		close();
 	}
+
+	explicit CBaseFileArchive(const CPathArchive& inFilePath): CBaseFileArchive(inFilePath.get()) {}
 
 	explicit CBaseFileArchive(const std::string& inFilePath) {
 		std::string mode;
@@ -134,7 +138,7 @@ public:
 
 	using CBaseFileArchive<TOpenType>::CBaseFileArchive;
 
-	std::string get() const override {
+	[[nodiscard]] virtual std::string get() const override {
 		auto loc = ftell(this->mFile);
 		auto res = readFile();
 		fseek(this->mFile, loc, SEEK_SET);
@@ -190,7 +194,7 @@ public:
 	}
 
 	// Read into char vector, then reinterpret to a string
-	std::string readFile(const bool inRemoveBOM = false) const {
+	[[nodiscard]] std::string readFile(const bool inRemoveBOM = false) const {
 #ifdef USING_SIMPLESTL
 		TVector<char> vector = readFile<char>(inRemoveBOM);
 		return {vector.data(), vector.getSize()};

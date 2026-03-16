@@ -1,4 +1,7 @@
 #pragma once
+
+#include <algorithm>
+
 #include "Archive.h"
 
 class CPathArchive : public CBaseStringArchive {
@@ -36,6 +39,7 @@ protected:
         std::replace(str.begin(), str.end(), '/', '\\');
 #elif PATH_SEPARATOR == '/'
         std::replace(str.begin(), str.end(), '\\', '/');
+
 #endif
         if (str.find('.') == std::string::npos) {
             str += PATH_SEPARATOR;

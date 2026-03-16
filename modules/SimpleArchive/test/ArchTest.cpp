@@ -15,6 +15,13 @@ namespace fs = std::filesystem;
 int main() {
 
     {
+        const auto path = fs::current_path();
+        std::cout << "Path: " << path.string() << std::endl;
+        const auto temp = fs::temp_directory_path();
+        std::cout << "Tmp Path: " << temp.string() << std::endl;
+    }
+
+    {
         CPathArchive pathTest(gSimpleCPPRoot);
         pathTest << "test";
 
@@ -37,7 +44,7 @@ int main() {
     std::cout << path.get() << std::endl;
 
     {
-        CFileArchive<EOpenType::BINARY_WRITE> fileArchive(path.get());
+        CFileArchive<EOpenType::BINARY_WRITE> fileArchive(path);
 
         const size_t v = 5;
         fileArchive << v;
@@ -46,7 +53,7 @@ int main() {
     }
 
     {
-        CFileArchive<EOpenType::BINARY_READ> fileArchive(path.get());
+        CFileArchive<EOpenType::BINARY_READ> fileArchive(path);
 
         size_t v;
         fileArchive >> v;
