@@ -5,19 +5,17 @@
 #include "sarch/HashArchive.h"
 #include "sarch/PathArchive.h"
 
+// Required to set the real root directory of the project
+#define SIMPLEUTILS_PATH_IMPLEMENTATION
+#include "sutil/Paths.h"
+#undef SIMPLEUTILS_PATH_IMPLEMENTATION
+
 namespace fs = std::filesystem;
 
 int main() {
 
     {
-        auto path = fs::current_path();
-        std::cout << "Path: " << path << std::endl;
-        auto temp = fs::temp_directory_path();
-        std::cout << "Tmp Path: " << temp << std::endl;
-    }
-
-    {
-        CPathArchive pathTest(SIMPLECPP_ROOT_DIR);
+        CPathArchive pathTest(gSimpleCPPRoot);
         pathTest << "test";
 
         std::cout << pathTest.get() << std::endl;
@@ -33,8 +31,10 @@ int main() {
     }
 
 
-    CPathArchive path(SIMPLECPP_ROOT_DIR);
-    path << "modules" << "SimpleArchive" << "test" << "input.dat";
+    CPathArchive path(gSimpleCPPRoot);
+    path << "input.dat";
+
+    std::cout << path.get() << std::endl;
 
     {
         CFileArchive<EOpenType::BINARY_WRITE> fileArchive(path.get());
@@ -42,7 +42,7 @@ int main() {
         const size_t v = 5;
         fileArchive << v;
         fileArchive << "test";
-        fileArchive << "test2";
+        fileArchive << "test200";
     }
 
     {
