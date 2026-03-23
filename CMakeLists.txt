@@ -9,6 +9,17 @@ project(
         LANGUAGES CXX C
 )
 
+# Enable testing if a top level project, otherwise it can be enabled optionally
+option(SIMPLECPP_TEST "Enable testing SimpleCPP features" ${PROJECT_IS_TOP_LEVEL})
+
+if(SIMPLECPP_TEST)
+    message(STATUS "SimpleCPP: Enabled Testing")
+    enable_testing()
+
+    # Set default CXX_STANDARD if testing
+    set(SimpleCPP_CXX_STANDARD 17)
+endif()
+
 # If not overridden, STL CXX Standard is the same as parent
 if(NOT SimpleCPP_CXX_STANDARD)
     set(SimpleCPP_CXX_STANDARD ${CMAKE_CXX_STANDARD})
@@ -21,11 +32,6 @@ if(NOT SimpleCPP_CXX_STANDARD)
 endif()
 
 message(STATUS "SimpleCPP: Using CXX version ${SimpleCPP_CXX_STANDARD}")
-
-# CMAKE_SOURCE_DIR is the top level cmake file, in this case, we can get the project that depends on simplecpp
-set(PROJECT_ROOT_DIR ${CMAKE_SOURCE_DIR})
-# CMAKE_CURRENT_SOURCE_DIR is the current level cmake file, so in this case, the root of simplecpp
-set(SIMPLECPP_PROJECT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(SIMPLECPP_COMPILER GCC)
@@ -73,12 +79,6 @@ function(create_simplecpp_module TARGET_NAME LIBRARY_TYPE)
 
     # Get the top level binary directory, can be used to determine the where the binary is and where the source is.
     target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE DEBUG_BINARY_ROOT_DIR="${CMAKE_BINARY_DIR}")
-
-    # Tell target the root directory of the project, (the project using simplecpp)
-    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE PROJECT_ROOT_DIR="${PROJECT_ROOT_DIR}")
-
-    # Get the root directory of simplecpp
-    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE SIMPLECPP_PROJECT_ROOT_DIR="${SIMPLECPP_PROJECT_ROOT_DIR}")
 
     # This tells other libraries that this target has been linked downstream to enable cross-module compatibility without hard requirements
     string(TOUPPER ${TARGET_NAME} UPPER_TARGET_NAME)
@@ -147,13 +147,6 @@ function(add_module MODULE_NAME)
     add_subdirectory(modules/${MODULE_NAME})
     target_link_libraries(SimpleCPP INTERFACE SimpleCPP-${MODULE_NAME})
 endfunction()
-
-option(SIMPLECPP_TEST "Enable testing SimpleCPP features" ${PROJECT_IS_TOP_LEVEL})
-
-if(SIMPLECPP_TEST)
-    message(STATUS "SimpleCPP: Enabled Testing")
-    enable_testing()
-endif()
 
 add_library(SimpleCPP INTERFACE)
 

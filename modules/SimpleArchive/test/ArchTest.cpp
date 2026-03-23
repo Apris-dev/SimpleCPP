@@ -1,12 +1,9 @@
 #include <iostream>
-#include <filesystem>
 
 #include "sarch/FileArchive.h"
 #include "sarch/PathArchive.h"
 
 #include "sutil/Paths.h"
-
-namespace fs = std::filesystem;
 
 int main() {
 

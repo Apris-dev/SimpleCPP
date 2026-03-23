@@ -15,8 +15,6 @@
 #include <unistd.h>
 #endif
 
-// TODO, paths cannot be a predefined macro, as project root will change in production environment
-
 inline std::string gTempPath = std::filesystem::temp_directory_path().string();
 
 inline std::string gExecutablePath = []() -> std::string {
