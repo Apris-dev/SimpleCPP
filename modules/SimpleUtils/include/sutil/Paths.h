@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <filesystem>
 
 #ifdef USING_WINDOWS
 #include <windows.h>
