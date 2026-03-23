@@ -1,5 +1,7 @@
 create_simplecpp_module(SimplePtr INTERFACE
         include/sptr/Memory.h
+        include/sptr/Shared.h
+        include/sptr/Unique.h
 )
 
 link_simplecpp_module(SimplePtr INTERFACE SimpleUtils)

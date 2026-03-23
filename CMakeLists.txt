@@ -148,7 +148,10 @@ function(add_module MODULE_NAME)
     target_link_libraries(SimpleCPP INTERFACE SimpleCPP-${MODULE_NAME})
 endfunction()
 
-add_library(SimpleCPP INTERFACE)
+add_library(SimpleCPP INTERFACE
+        modules/SimplePtr/include/sptr/Common.h
+        modules/SimplePtr/include/sptr/Weak.h
+        modules/SimplePtr/include/sptr/Frail.h)
 
 # Create a list of modules so compile definitions can be created in each module
 set(SIMPLECPP_MODULES
