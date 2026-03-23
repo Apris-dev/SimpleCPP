@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <cassert>
 
+#include "sutil/PlatformDefinition.h"
+
 #ifdef USING_WINDOWS
 #include <windows.h>
 #include <libloaderapi.h>
