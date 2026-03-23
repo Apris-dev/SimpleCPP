@@ -14,12 +14,18 @@ namespace fs = std::filesystem;
 
 int main() {
 
+    auto p = getExecutablePath();
+    p << "input.dat";
+    std::cout << p.get() << std::endl;
+
     {
         const auto path = fs::current_path();
         std::cout << "Path: " << path.string() << std::endl;
         const auto temp = fs::temp_directory_path();
         std::cout << "Tmp Path: " << temp.string() << std::endl;
     }
+
+    return 0;
 
     {
         CPathArchive pathTest(gSimpleCPPRoot);

@@ -25,9 +25,7 @@ message(STATUS "SimpleCPP: Using CXX version ${SimpleCPP_CXX_STANDARD}")
 # CMAKE_SOURCE_DIR is the top level cmake file, in this case, we can get the project that depends on simplecpp
 set(PROJECT_ROOT_DIR ${CMAKE_SOURCE_DIR})
 # CMAKE_CURRENT_SOURCE_DIR is the current level cmake file, so in this case, the root of simplecpp
-set(SIMPLECPP_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-# Create a modules directory from our root directory
-set(SIMPLECPP_MODULE_DIR "${SIMPLECPP_ROOT_DIR}/modules")
+set(SIMPLECPP_PROJECT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(SIMPLECPP_COMPILER GCC)
@@ -66,11 +64,17 @@ function(create_simplecpp_module TARGET_NAME LIBRARY_TYPE)
     target_compile_definitions(SimpleCPP-${TARGET_NAME} ${LIBRARY_TYPE} USING_${SIMPLECPP_PLATFORM})
     target_compile_definitions(SimpleCPP-${TARGET_NAME} ${LIBRARY_TYPE} PLATFORM_VERSION="${SIMPLECPP_PLATFORM_VERSION}")
 
+    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE
+            $<$<CONFIG:Debug>:USING_DEBUG>
+    )
+
+    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE DEBUG_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
     # Tell target the root directory of the project, (the project using simplecpp)
-    target_compile_definitions(SimpleCPP-SimpleUtils INTERFACE PROJECT_ROOT_DIR="${PROJECT_ROOT_DIR}")
+    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE PROJECT_ROOT_DIR="${PROJECT_ROOT_DIR}")
 
     # Get the root directory of simplecpp
-    target_compile_definitions(SimpleCPP-SimpleUtils INTERFACE SIMPLECPP_ROOT_DIR="${SIMPLECPP_ROOT_DIR}")
+    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE SIMPLECPP_PROJECT_ROOT_DIR="${SIMPLECPP_PROJECT_ROOT_DIR}")
 
     # This tells other libraries that this target has been linked downstream to enable cross-module compatibility without hard requirements
     string(TOUPPER ${TARGET_NAME} UPPER_TARGET_NAME)

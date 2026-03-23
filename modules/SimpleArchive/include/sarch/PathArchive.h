@@ -7,12 +7,23 @@
 class CPathArchive : public CBaseStringArchive {
 
 public:
-    explicit CPathArchive(const std::string& initialPath = {}) {
+
+    CPathArchive() = default;
+
+    explicit CPathArchive(const std::string& initialPath) {
         CPathArchive::write(initialPath);
     }
 
-    std::string get() const override {
+    [[nodiscard]] virtual std::string get() const override {
         return str;
+    }
+
+    void previous() {
+        const auto loc = str.find_last_of(PATH_SEPARATOR, str.size() - 2);
+        if (loc == std::string::npos) {
+            return;
+        }
+        str.erase(loc + 1);
     }
 protected:
 
@@ -33,13 +44,14 @@ protected:
     }
 
     virtual size_t write(const std::string& inValue) override {
+        if (inValue.empty()) return 0;
+
         str += inValue;
         // Force Replacement of proper path separator
 #if PATH_SEPARATOR == '\\'
         std::replace(str.begin(), str.end(), '/', '\\');
 #elif PATH_SEPARATOR == '/'
         std::replace(str.begin(), str.end(), '\\', '/');
-
 #endif
         if (str.find('.') == std::string::npos) {
             str += PATH_SEPARATOR;
