@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "sdg/DependencyGraph.h"
+#include "sptr/Memory.h"
 
 using namespace std::chrono;
 
