@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <random>
 #include <cassert>
+#include <cstdint>
 
 #include "TestShared.h"
 #include "sptr/Memory.h"

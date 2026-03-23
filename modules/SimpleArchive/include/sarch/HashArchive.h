@@ -2,6 +2,7 @@
 
 #include <type_traits>
 #include <cstring>
+#include <cstdint>
 
 #include "Archive.h"
 
