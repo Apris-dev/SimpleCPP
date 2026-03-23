@@ -68,7 +68,11 @@ function(create_simplecpp_module TARGET_NAME LIBRARY_TYPE)
             $<$<CONFIG:Debug>:USING_DEBUG>
     )
 
-    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE DEBUG_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+    # Get the top level source directory, can be used to determine the executable directory from a build environment
+    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE DEBUG_ROOT_DIR="${CMAKE_SOURCE_DIR}")
+
+    # Get the top level binary directory, can be used to determine the where the binary is and where the source is.
+    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE DEBUG_BINARY_ROOT_DIR="${CMAKE_BINARY_DIR}")
 
     # Tell target the root directory of the project, (the project using simplecpp)
     target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE PROJECT_ROOT_DIR="${PROJECT_ROOT_DIR}")

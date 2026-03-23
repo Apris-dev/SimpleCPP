@@ -53,7 +53,7 @@ protected:
 #elif PATH_SEPARATOR == '/'
         std::replace(str.begin(), str.end(), '\\', '/');
 #endif
-        if (str.find('.') == std::string::npos) {
+        if (str.find('.') == std::string::npos && str.back() != PATH_SEPARATOR) {
             str += PATH_SEPARATOR;
         }
         return 0;
