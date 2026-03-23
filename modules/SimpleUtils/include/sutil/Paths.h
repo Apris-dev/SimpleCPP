@@ -2,6 +2,7 @@
 
 #include <string>
 #include <filesystem>
+#include <cassert>
 
 #ifdef USING_WINDOWS
 #include <windows.h>
@@ -16,7 +17,7 @@
 
 inline std::string gTempPath = std::filesystem::temp_directory_path().string();
 
-inline std::string gExecutablePath = [] {
+inline std::string gExecutablePath = []() -> std::string {
     std::string path;
 #ifdef USING_WINDOWS
     char buffer[MAX_PATH];
@@ -41,8 +42,9 @@ inline std::string gExecutablePath = [] {
     }
 #endif
 
-    CPathArchive archive(path);
-    archive.previous();
+    const auto loc = path.find_last_of(PATH_SEPARATOR, path.size() - 2);
+    assert(loc != std::string::npos);
+    path.erase(loc + 1);
 
-    return archive.get();
+    return path;
 }();
