@@ -1,7 +1,10 @@
 ﻿#pragma once
 
+#include <condition_variable>
 #include <mutex>
 #include <functional>
+#include <thread>
+#include <deque>
 
 #include "sptr/Memory.h"
 
@@ -195,4 +198,137 @@ private:
 	TType m_obj;
 
 	mutable std::recursive_mutex mtx;
+};
+
+class CWorker {
+
+	std::mutex m_QueueMutex;
+
+	std::condition_variable m_QueueCV;
+
+	std::condition_variable m_FinishedCV;
+
+	std::deque<std::function<void()>> m_Tasks;
+
+	bool m_Stop = false;
+
+public:
+
+	CWorker() = default;
+
+	bool execute() {
+		std::function<void()> task;
+		{
+			std::unique_lock lock(m_QueueMutex);
+			m_QueueCV.wait(lock, [this] {
+				return !m_Tasks.empty() || m_Stop;
+			});
+
+			if (m_Stop && m_Tasks.empty()) return true;
+
+			// Get task and remove from tasks
+			task = m_Tasks.front();
+			m_Tasks.pop_front();
+		}
+
+		task();
+
+		if (m_Tasks.empty()) {
+			m_FinishedCV.notify_all();
+		}
+
+		return false;
+	}
+
+	void flush() {
+		while (getNumberOfTasks() > 0) {
+			std::function<void()> task;
+			{
+				std::unique_lock lock(m_QueueMutex);
+
+				// Get task and remove from tasks
+				task = m_Tasks.front();
+				m_Tasks.pop_front();
+			}
+
+			task();
+
+			if (m_Tasks.empty()) {
+				m_FinishedCV.notify_all();
+			}
+		}
+	}
+
+	[[nodiscard]] size_t getNumberOfTasks() const {
+		return m_Tasks.size();
+	}
+
+	[[nodiscard]] bool isWorkerRunning() const {
+		return !m_Tasks.empty();
+	}
+
+	void stop() {
+		{
+			std::lock_guard lock(m_QueueMutex);
+			m_Tasks.clear();
+			m_Stop = true;
+		}
+		m_QueueCV.notify_all();
+	}
+
+	void add(const std::function<void()>& inFunc) {
+		{
+			std::lock_guard lock(m_QueueMutex);
+			m_Tasks.push_back(inFunc);
+		}
+		m_QueueCV.notify_all();
+	}
+
+	void wait() {
+		std::unique_lock lock(m_QueueMutex);
+
+		// Tells the worker to wait until it gets a signal and there are no tasks left, can wait indefinitely if tasks are looped
+		m_FinishedCV.wait(lock, [this] {return m_Tasks.empty();});
+	}
+};
+
+class CThreadPool {
+
+	std::vector<std::thread> m_Threads{};
+
+	CWorker m_Worker;
+
+public:
+
+	explicit CThreadPool(const uint32_t inNumThreads = std::thread::hardware_concurrency()) {
+		for (uint32_t i = 0; i < inNumThreads; ++i) {
+			m_Threads.emplace_back([this] {
+				while (true) {
+					if (m_Worker.execute()) return;
+				}
+			});
+		}
+	}
+
+	~CThreadPool() {
+		stop();
+	}
+
+	// Whichever thread gets to the task first will run it
+	void run(const std::function<void()>& inFunc) {
+		m_Worker.add(inFunc);
+	}
+
+	void wait() {
+		m_Worker.wait();
+	}
+
+	void stop() {
+		m_Worker.stop();
+		wait();
+		for (auto& thread : m_Threads) {
+			if (thread.joinable()) thread.join();
+		}
+	}
+
 };

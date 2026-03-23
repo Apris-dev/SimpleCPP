@@ -9,6 +9,20 @@
 
 int main() {
 
+	CThreadPool pool{1};
+
+	for (int i = 0; i < 10; ++i) {
+		pool.run([] {
+			std::cout << "Hello World!" << std::endl;
+		});
+	}
+
+	std::cout << "Sent Hello Dispatch" << std::endl;
+
+	pool.wait();
+
+	return 0;
+
 	TThreadSafe<TVector<TUnique<SObject>>> vec;
 
 	char c = 'y';
