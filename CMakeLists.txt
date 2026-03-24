@@ -75,10 +75,14 @@ function(create_simplecpp_module TARGET_NAME LIBRARY_TYPE)
     )
 
     # Get the top level source directory, can be used to determine the executable directory from a build environment
-    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE DEBUG_ROOT_DIR="${CMAKE_SOURCE_DIR}")
+    if (SIMPLECPP_PLATFORM MATCHES "WINDOWS")
+        string(REPLACE "/" "\\\\" DEBUG_ROOT_DIR "${CMAKE_SOURCE_DIR}")
+        string(REPLACE "/" "\\\\" DEBUG_BINARY_ROOT_DIR "${CMAKE_BINARY_DIR}")
+    endif()
+    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE DEBUG_ROOT_DIR="${DEBUG_ROOT_DIR}")
 
     # Get the top level binary directory, can be used to determine the where the binary is and where the source is.
-    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE DEBUG_BINARY_ROOT_DIR="${CMAKE_BINARY_DIR}")
+    target_compile_definitions(SimpleCPP-${TARGET_NAME} INTERFACE DEBUG_BINARY_ROOT_DIR="${DEBUG_BINARY_ROOT_DIR}")
 
     # This tells other libraries that this target has been linked downstream to enable cross-module compatibility without hard requirements
     string(TOUPPER ${TARGET_NAME} UPPER_TARGET_NAME)
