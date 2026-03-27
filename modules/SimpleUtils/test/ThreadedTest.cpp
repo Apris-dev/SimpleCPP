@@ -9,15 +9,51 @@
 
 int main() {
 
-	CThreadPool pool{1};
+	/*{
+		CWorker worker;
+
+		for (int i = 0; i < 10; ++i) {
+			worker.add([] {
+				std::cout << "Hello World" << std::endl;
+			});
+		}
+
+
+		const CPersistentThread thread{worker};
+
+		thread.wait();
+
+		thread.sleep(5000);
+
+		for (int i = 0; i < 10; ++i) {
+			worker.add([] {
+				std::cout << "Hello World (2)" << std::endl;
+			});
+		}
+
+		thread.wait();
+
+		return 0;
+	}*/
+
+	CWorker worker;
+	const CThreadPool pool{worker, 10};
 
 	for (int i = 0; i < 10; ++i) {
-		pool.run([] {
+		worker.add([] {
 			std::cout << "Hello World!" << std::endl;
 		});
 	}
 
-	std::cout << "Sent Hello Dispatch" << std::endl;
+	pool.wait();
+
+	pool.sleep(1000);
+
+	for (int i = 0; i < 10; ++i) {
+		worker.add([] {
+			std::cout << "Hello World! (2)" << std::endl;
+		});
+	}
 
 	pool.wait();
 
