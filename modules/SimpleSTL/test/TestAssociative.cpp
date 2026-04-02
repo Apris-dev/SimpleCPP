@@ -57,11 +57,10 @@ std::string enumToString(const MapEnum val) {
 	return "";
 }
 
-template <typename TType>
-#if CXX_VERSION >= 20
-requires std::is_base_of_v<Abstract, typename TUnfurled<TType>::Type>
-#endif
-void containerTest(const std::string& containerName, TAssociativeContainer<MapEnum, TType>& container) {
+template <typename TContainerType>
+void containerTest(const std::string& containerName, TAssociativeContainer<TContainerType>& container) {
+
+	using TType = typename TAssociativeContainer<TContainerType>::TValueType;
 
 	std::vector<size_t> vec;
 	for (size_t i = 0; i < 10; ++i) {
@@ -95,11 +94,10 @@ void containerTest(const std::string& containerName, TAssociativeContainer<MapEn
 	std::cout << std::endl;
 }
 
-template <typename TType>
-#if CXX_VERSION >= 20
-requires std::is_base_of_v<Abstract, typename TUnfurled<TType>::Type>
-#endif
-void transferTest(const std::string& containerName, TAssociativeContainer<MapEnum, TType>& container) {
+template <typename TContainerType>
+void transferTest(const std::string& containerName, TAssociativeContainer<TContainerType>& container) {
+
+	using TType = typename TAssociativeContainer<TContainerType>::TValueType;
 
 	{
 		std::cout << "Map Transfer Test" << std::endl;

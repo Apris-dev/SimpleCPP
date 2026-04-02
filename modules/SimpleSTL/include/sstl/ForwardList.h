@@ -5,7 +5,9 @@
 #include "sutil/InitializerList.h"
 
 template <typename TType>
-struct TForwardList : TSequenceContainer<TType> {
+struct TForwardList : TSequenceContainer<std::forward_list<TType>> {
+
+	using Super = TSequenceContainer<std::forward_list<TType>>;
 
 	TForwardList() = default;
 
@@ -27,12 +29,28 @@ struct TForwardList : TSequenceContainer<TType> {
 		return SIZE(m_Container);
 	}
 
-	virtual TType& top() override {
+	[[nodiscard]] virtual TType& top() override {
 		return m_Container.front();
 	}
 
-	virtual const TType& top() const override {
+	[[nodiscard]] virtual const TType& top() const override {
 		return m_Container.front();
+	}
+
+	[[nodiscard]] virtual typename Super::Iterator begin() noexcept override {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] virtual typename Super::ConstIterator begin() const noexcept override {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] virtual typename Super::Iterator end() noexcept override {
+		return m_Container.end();
+	}
+
+	[[nodiscard]] virtual typename Super::ConstIterator end() const noexcept override {
+		return m_Container.end();
 	}
 
 	virtual bool contains(const TType& obj) const override {
@@ -198,29 +216,14 @@ struct TForwardList : TSequenceContainer<TType> {
 	}
 #endif
 
-	virtual void transfer(TSequenceContainer<TType>& otr, const size_t index) override {
+	using Super::transfer;
+
+	virtual void transfer(Super& otr, const size_t index) override {
 		// Forward List transfer can use splicing
-		if (auto otrList = dynamic_cast<TForwardList*>(&otr)) {
-			auto itr = m_Container.before_begin();
-			std::advance(itr, index);
-			otrList->m_Container.splice_after(otrList->m_Container.before_begin(), m_Container, itr);
-			return;
-		}
-		TSequenceContainer<TType>::transfer(otr, index);
-	}
-
-	virtual void forEach(const std::function<void(size_t, TType&)>& func) override {
-		size_t i = 0;
-		for (auto itr = m_Container.begin(); itr != m_Container.end(); std::advance(itr, 1), ++i) {
-			func(i, *itr);
-		}
-	}
-
-	virtual void forEach(const std::function<void(size_t, const TType&)>& func) const override {
-		size_t i = 0;
-		for (auto itr = m_Container.begin(); itr != m_Container.end(); std::advance(itr, 1), ++i) {
-			func(i, *itr);
-		}
+		auto list = dynamic_cast<TForwardList*>(&otr);
+		auto itr = m_Container.before_begin();
+		std::advance(itr, index);
+		list->m_Container.splice_after(list->m_Container.before_begin(), m_Container, itr);
 	}
 
 protected:

@@ -15,11 +15,10 @@
 #include "sstl/Queue.h"
 #include "sstl/Stack.h"
 
-template <typename TType>
-#if CXX_VERSION >= 20
-requires std::is_base_of_v<Abstract, typename TUnfurled<TType>::Type>
-#endif
-void containerTest(const std::string& containerName, TSequenceContainer<TType>& container) {
+template <typename TContainerType>
+void containerTest(const std::string& containerName, TSequenceContainer<TContainerType>& container) {
+
+	using TType = typename TSequenceContainer<TContainerType>::TType;
 
 	std::vector<size_t> vec;
 	for (size_t i = 0; i < 10; ++i) {
@@ -49,11 +48,10 @@ void containerTest(const std::string& containerName, TSequenceContainer<TType>& 
 }
 
 
-template <typename TType>
-#if CXX_VERSION >= 20
-requires std::is_base_of_v<Abstract, typename TUnfurled<TType>::Type>
-#endif
-void transferTest(const std::string& containerName, TSequenceContainer<TType>& container) {
+template <typename TContainerType>
+void transferTest(const std::string& containerName, TSequenceContainer<TContainerType>& container) {
+
+	using TType = typename TSequenceContainer<TContainerType>::TType;
 
 	{
 		std::cout << "Vector Transfer Test" << std::endl;
@@ -63,9 +61,9 @@ void transferTest(const std::string& containerName, TSequenceContainer<TType>& c
 
 		std::cout << "Pre Transfer" << std::endl;
 		std::cout << "from:" << std::endl;
-		from.forEach([](size_t index, const TType& obb) {sstl::getUnfurled(obb)->print();});
+		for (const TType& obb : from) { sstl::getUnfurled(obb)->print(); }
 		std::cout << "to:" << std::endl;
-		container.forEach([](size_t index, const TType& obb) {sstl::getUnfurled(obb)->print();});
+		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
 		//assert(from.getSize() == 1);
 
@@ -73,9 +71,9 @@ void transferTest(const std::string& containerName, TSequenceContainer<TType>& c
 
 		std::cout << "Post Transfer" << std::endl;
 		std::cout << "from:" << std::endl;
-		from.forEach([](size_t index, const TType& obb) {sstl::getUnfurled(obb)->print();});
+		for (const TType& obb : from) { sstl::getUnfurled(obb)->print(); }
 		std::cout << "to:" << std::endl;
-		container.forEach([](size_t index, const TType& obb) {sstl::getUnfurled(obb)->print();});
+		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 		std::cout << std::endl;
 
 		//assert(container.getSize() == 1);
@@ -91,9 +89,9 @@ void transferTest(const std::string& containerName, TSequenceContainer<TType>& c
 
 		std::cout << "Pre Transfer" << std::endl;
 		std::cout << "from:" << std::endl;
-		from.forEach([](size_t index, const TType& obb) {sstl::getUnfurled(obb)->print();});
+		for (const TType& obb : from) { sstl::getUnfurled(obb)->print(); }
 		std::cout << "to:" << std::endl;
-		container.forEach([](size_t index, const TType& obb) {sstl::getUnfurled(obb)->print();});
+		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
 		//assert(from.getSize() == 1);
 
@@ -101,9 +99,9 @@ void transferTest(const std::string& containerName, TSequenceContainer<TType>& c
 
 		std::cout << "Post Transfer" << std::endl;
 		std::cout << "from:" << std::endl;
-		from.forEach([](size_t index, const TType& obb) {sstl::getUnfurled(obb)->print();});
+		for (const TType& obb : from) { sstl::getUnfurled(obb)->print(); }
 		std::cout << "to:" << std::endl;
-		container.forEach([](size_t index, const TType& obb) {sstl::getUnfurled(obb)->print();});
+		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 		std::cout << std::endl;
 
 		//assert(container.getSize() == 1);
@@ -123,9 +121,9 @@ void transferTest(const std::string& containerName, TSequenceContainer<TType>& c
 	SINGLE_TEST(x<TUnique<Parent>>) \
 	SINGLE_TEST(x<TUnique<Abstract>>) \
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Constructor Test" << std::endl; } \
-	{ x container{0, 5, 10}; container.forEach([](size_t, const int& i) { std::cout << i << std::endl; }); } \
+	{ x container{0, 5, 10}; for (auto& i : container) { std::cout << i << std::endl; } } \
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Unique Constructor Test" << std::endl; } \
-	{ x container{TUnique{0}, TUnique{5}, TUnique{10}}; container.forEach([](size_t, const TUnique<int>& i) { std::cout << *i << std::endl; }); }
+	{ x container{TUnique{0}, TUnique{5}, TUnique{10}}; for (auto& i : container) { std::cout << *i << std::endl; } }
 
 
 #define DO_ARRAY_TEST(x) \
@@ -135,9 +133,9 @@ void transferTest(const std::string& containerName, TSequenceContainer<TType>& c
 	SINGLE_TEST(x<TUnique<Parent>, 10>) \
 	SINGLE_TEST(x<TUnique<Abstract>, 10>) \
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Constructor Test" << std::endl; } \
-	{ x<int, 3> container{0, 5, 10}; container.forEach([](size_t, const int& i) { std::cout << i << std::endl; }); } \
+	{ x<int, 3> container{0, 5, 10}; for (auto& i : container) { std::cout << i << std::endl; } } \
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Unique Constructor Test" << std::endl; } \
-	{ x<TUnique<int>, 3> container{TUnique{0}, TUnique{5}, TUnique{10}}; container.forEach([](size_t, const TUnique<int>& i) { std::cout << *i << std::endl; }); }
+	{ x<TUnique<int>, 3> container{TUnique{0}, TUnique{5}, TUnique{10}}; for (auto& i : container) { std::cout << *i << std::endl; } }
 
 int main() {
 	DO_TEST(TVector)

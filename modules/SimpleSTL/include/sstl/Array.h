@@ -5,7 +5,9 @@
 #include "sutil/InitializerList.h"
 
 template <typename TType, size_t TSize>
-struct TArray : TSequenceContainer<TType> {
+struct TArray : TSequenceContainer<std::array<TType, TSize>> {
+
+	using Super = TSequenceContainer<std::array<TType, TSize>>;
 
 	_CONSTEXPR20 TArray() {
 		m_IsPopulated.fill(false);
@@ -47,24 +49,40 @@ struct TArray : TSequenceContainer<TType> {
 		return m_Container.size();
 	}
 
-	TType* data() { return m_Container.data(); }
+	[[nodiscard]] TType* data() { return m_Container.data(); }
 
-	const TType* data() const { return m_Container.data(); }
+	[[nodiscard]] const TType* data() const { return m_Container.data(); }
 
-	virtual TType& top() override {
+	[[nodiscard]] virtual TType& top() override {
 		return m_Container.front();
 	}
 
-	virtual const TType& top() const override {
+	[[nodiscard]] virtual const TType& top() const override {
 		return m_Container.front();
 	}
 
-	virtual TType& bottom() override {
+	[[nodiscard]] virtual TType& bottom() override {
 		return m_Container.back();
 	}
 
-	virtual const TType& bottom() const override {
+	[[nodiscard]] virtual const TType& bottom() const override {
 		return m_Container.back();
+	}
+
+	[[nodiscard]] virtual typename Super::Iterator begin() noexcept override {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] virtual typename Super::ConstIterator begin() const noexcept override {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] virtual typename Super::Iterator end() noexcept override {
+		return m_Container.end();
+	}
+
+	[[nodiscard]] virtual typename Super::ConstIterator end() const noexcept override {
+		return m_Container.end();
 	}
 
 	[[nodiscard]] virtual bool containsAt(size_t index) const override {
@@ -234,11 +252,11 @@ struct TArray : TSequenceContainer<TType> {
 
 	virtual void pop(const TType& obj) override {
 		if constexpr (sutil::is_equality_comparable_v<TType>) {
-			forEach([&](size_t index, TType& otr) {
-				if (otr == obj) {
+			for (size_t index = 0; index < getSize(); ++index) {
+				if (m_Container[index] == obj) {
 					m_IsPopulated[index] = false;
 				}
-			});
+			}
 		} else {
 			throw std::runtime_error("Type is not comparable!");
 		}
@@ -247,45 +265,17 @@ struct TArray : TSequenceContainer<TType> {
 #ifdef USING_SIMPLEPTR
 	virtual void pop(typename TUnfurled<TType>::Type* obj) override {
 		if constexpr (sstl::is_managed_v<TType>) {
-			forEach([&](size_t index, TType& otr) {
+			for (size_t index = 0; index < getSize(); ++index) {
 				// Will compare pointers, is always comparable
-				if (otr.get() == obj) {
+				if (m_Container[index].get() == obj) {
 					m_IsPopulated[index] = false;
 				}
-			});
+			}
 		} else {
 			pop(*obj);
 		}
 	}
 #endif
-
-	virtual void forEach(const std::function<void(size_t, TType&)>& func) override {
-		size_t i = 0;
-		for (auto itr = m_Container.begin(); itr != m_Container.end(); ++itr, ++i) {
-			func(i, *itr);
-		}
-	}
-
-	virtual void forEach(const std::function<void(size_t, const TType&)>& func) const override {
-		size_t i = 0;
-		for (auto itr = m_Container.begin(); itr != m_Container.end(); ++itr, ++i) {
-			func(i, *itr);
-		}
-	}
-
-	virtual void forEachReverse(const std::function<void(size_t, TType&)>& func) override {
-		size_t i = getSize() - 1;
-		for (auto itr = m_Container.rbegin(); itr != m_Container.rend(); ++itr, --i) {
-			func(i, *itr);
-		}
-	}
-
-	virtual void forEachReverse(const std::function<void(size_t, const TType&)>& func) const override {
-		size_t i = getSize() - 1;
-		for (auto itr = m_Container.rbegin(); itr != m_Container.rend(); ++itr, --i) {
-			func(i, *itr);
-		}
-	}
 
 protected:
 

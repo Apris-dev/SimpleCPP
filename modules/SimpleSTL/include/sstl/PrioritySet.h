@@ -7,7 +7,9 @@
 template <typename TType,
           std::enable_if_t<sutil::is_less_than_comparable_v<TType>, int> = 0
 >
-struct TPrioritySet : TSingleAssociativeContainer<TType> {
+struct TPrioritySet : TSingleAssociativeContainer<std::set<TType>> {
+
+	using Super = TSingleAssociativeContainer<std::set<TType>>;
 
 	TPrioritySet() = default;
 
@@ -29,14 +31,30 @@ struct TPrioritySet : TSingleAssociativeContainer<TType> {
 		return m_Container.size();
 	}
 
-	virtual const TType& top() const override {
+	[[nodiscard]] virtual const TType& top() const override {
 		return *m_Container.begin();
 	}
 
-	virtual const TType& bottom() const override {
+	[[nodiscard]] virtual const TType& bottom() const override {
 		auto itr = m_Container.end();
 		--itr;
 		return *itr;
+	}
+
+	[[nodiscard]] virtual typename Super::Iterator begin() noexcept override {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] virtual typename Super::ConstIterator begin() const noexcept override {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] virtual typename Super::Iterator end() noexcept override {
+		return m_Container.end();
+	}
+
+	[[nodiscard]] virtual typename Super::ConstIterator end() const noexcept override {
+		return m_Container.end();
 	}
 
 	virtual bool contains(const TType& obj) const override {
@@ -135,39 +153,19 @@ struct TPrioritySet : TSingleAssociativeContainer<TType> {
 	}
 #endif
 
-	virtual void transfer(TSingleAssociativeContainer<TType>& otr, TType& obj) override {
-		if (!this->contains(obj)) return;
-		auto itr = m_Container.extract(m_Container.find(obj));
-		// Prefer move, but copy if not available
-		if constexpr (std::is_move_constructible_v<TType>) {
-			otr.push(std::move(itr.value()));
-		} else {
-			otr.push(itr.value());
-		}
+	virtual typename std::set<TType>::node_type extract(TType& obj) override {
+		return m_Container.extract(m_Container.find(obj));
 	}
 
 #ifdef USING_SIMPLEPTR
-	virtual void transfer(TSingleAssociativeContainer<TType>& otr, typename TUnfurled<TType>::Type* obj) override {
+	virtual typename std::set<TType>::node_type extract(typename TUnfurled<TType>::Type* obj) override {
 		if constexpr (sstl::is_managed_v<TType>) {
-			if (!this->contains(obj)) return;
-			auto itr = m_Container.extract(FIND(m_Container, obj, TUnfurled<TType>::get));
-			// Prefer move, but copy if not available
-			if constexpr (std::is_move_constructible_v<TType>) {
-				otr.push(std::move(itr.value()));
-			} else {
-				otr.push(itr.value());
-			}
+			return m_Container.extract(FIND(m_Container, obj, TUnfurled<TType>::get));
 		} else {
-			transfer(otr, *obj);
+			return extract(*obj);
 		}
 	}
 #endif
-
-	virtual void forEach(const std::function<void(const TType&)>& func) const override {
-		for (auto itr = m_Container.begin(); itr != m_Container.end(); ++itr) {
-			func(*itr);
-		}
-	}
 
 protected:
 

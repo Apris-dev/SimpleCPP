@@ -5,7 +5,9 @@
 #include "sutil/InitializerList.h"
 
 template <typename TType>
-struct TList : TSequenceContainer<TType> {
+struct TList : TSequenceContainer<std::list<TType>> {
+
+	using Super = TSequenceContainer<std::list<TType>>;
 
 	TList() = default;
 
@@ -27,20 +29,36 @@ struct TList : TSequenceContainer<TType> {
 		return m_Container.size();
 	}
 
-	virtual TType& top() override {
+	[[nodiscard]] virtual TType& top() override {
 		return m_Container.front();
 	}
 
-	virtual const TType& top() const override {
+	[[nodiscard]] virtual const TType& top() const override {
 		return m_Container.front();
 	}
 
-	virtual TType& bottom() override {
+	[[nodiscard]] virtual TType& bottom() override {
 		return m_Container.back();
 	}
 
-	virtual const TType& bottom() const override {
+	[[nodiscard]] virtual const TType& bottom() const override {
 		return m_Container.back();
+	}
+
+	[[nodiscard]] virtual typename Super::Iterator begin() noexcept override {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] virtual typename Super::ConstIterator begin() const noexcept override {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] virtual typename Super::Iterator end() noexcept override {
+		return m_Container.end();
+	}
+
+	[[nodiscard]] virtual typename Super::ConstIterator end() const noexcept override {
+		return m_Container.end();
 	}
 
 	virtual bool contains(const TType& obj) const override {
@@ -206,43 +224,14 @@ struct TList : TSequenceContainer<TType> {
 	}
 #endif
 
+	using Super::transfer;
+
 	// List transfer can use splicing
-	virtual void transfer(TSequenceContainer<TType>& otr, const size_t index) override {
-		if (auto otrList = dynamic_cast<TList*>(&otr)) {
-			auto itr = m_Container.begin();
-			std::advance(itr, index);
-			otrList->m_Container.splice(otrList->m_Container.begin(), m_Container, itr);
-			return;
-		}
-		TSequenceContainer<TType>::transfer(otr, index);
-	}
-
-	virtual void forEach(const std::function<void(size_t, TType&)>& func) override {
-		size_t i = 0;
-		for (auto itr = m_Container.begin(); itr != m_Container.end(); std::advance(itr, 1), ++i) {
-			func(i, *itr);
-		}
-	}
-
-	virtual void forEach(const std::function<void(size_t, const TType&)>& func) const override {
-		size_t i = 0;
-		for (auto itr = m_Container.begin(); itr != m_Container.end(); std::advance(itr, 1), ++i) {
-			func(i, *itr);
-		}
-	}
-
-	virtual void forEachReverse(const std::function<void(size_t, TType&)>& func) override {
-		size_t i = getSize() - 1;
-		for (auto itr = m_Container.rbegin(); itr != m_Container.rend(); std::advance(itr, 1), --i) {
-			func(i, *itr);
-		}
-	}
-
-	virtual void forEachReverse(const std::function<void(size_t, const TType&)>& func) const override {
-		size_t i = getSize() - 1;
-		for (auto itr = m_Container.rbegin(); itr != m_Container.rend(); std::advance(itr, 1), --i) {
-			func(i, *itr);
-		}
+	virtual void transfer(Super& otr, const size_t index) override {
+		auto list = dynamic_cast<TList*>(&otr);
+		auto itr = m_Container.begin();
+		std::advance(itr, index);
+		list->m_Container.splice(list->m_Container.begin(), m_Container, itr);
 	}
 
 protected:

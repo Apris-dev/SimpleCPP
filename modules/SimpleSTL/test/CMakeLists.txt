@@ -28,3 +28,7 @@ add_simplecpp_test(SimpleSTL ReleaseTest
 )
 
 link_simplecpp_test(SimpleSTL ReleaseTest SimplePtr)
+
+add_simplecpp_test(SimpleSTL TestItr
+        TestItr.cpp
+)

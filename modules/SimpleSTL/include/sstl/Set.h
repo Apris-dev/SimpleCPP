@@ -4,12 +4,10 @@
 #include "Container.h"
 #include "sutil/InitializerList.h"
 
-#ifdef USING_SIMPLEARCHIVE
-#include "sarch/HashArchive.h"
-#endif
-
 template <typename TType>
-struct TSet : TSingleAssociativeContainer<TType> {
+struct TSet : TSingleAssociativeContainer<std::unordered_set<TType, ContainerHasher<TType>>> {
+
+	using Super = TSingleAssociativeContainer<std::unordered_set<TType, ContainerHasher<TType>>>;
 
 	TSet() = default;
 
@@ -32,14 +30,30 @@ struct TSet : TSingleAssociativeContainer<TType> {
 		return m_Container.size();
 	}
 
-	virtual const TType& top() const override {
+	[[nodiscard]] virtual const TType& top() const override {
 		return *m_Container.begin();
 	}
 
-	virtual const TType& bottom() const override {
+	[[nodiscard]] virtual const TType& bottom() const override {
 		auto itr = m_Container.end();
 		std::advance(itr, -1);
 		return *itr;
+	}
+
+	[[nodiscard]] virtual typename Super::Iterator begin() noexcept override {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] virtual typename Super::ConstIterator begin() const noexcept override {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] virtual typename Super::Iterator end() noexcept override {
+		return m_Container.end();
+	}
+
+	[[nodiscard]] virtual typename Super::ConstIterator end() const noexcept override {
+		return m_Container.end();
 	}
 
 	virtual bool contains(const TType& obj) const override {
@@ -142,55 +156,23 @@ struct TSet : TSingleAssociativeContainer<TType> {
 	}
 #endif
 
-	virtual void transfer(TSingleAssociativeContainer<TType>& otr, TType& obj) override {
-		if (!this->contains(obj)) return;
-		auto itr = m_Container.extract(m_Container.find(obj));
-		// Prefer move, but copy if not available
-		if constexpr (std::is_move_constructible_v<TType>) {
-			otr.push(std::move(itr.value()));
-		} else {
-			otr.push(itr.value());
-		}
+	virtual typename std::unordered_set<TType, ContainerHasher<TType>>::node_type extract(TType& obj) override {
+		return m_Container.extract(m_Container.find(obj));
 	}
 
 #ifdef USING_SIMPLEPTR
-	virtual void transfer(TSingleAssociativeContainer<TType>& otr, typename TUnfurled<TType>::Type* obj) override {
+	virtual typename std::unordered_set<TType, ContainerHasher<TType>>::node_type extract(typename TUnfurled<TType>::Type* obj) override {
 		if constexpr (sstl::is_managed_v<TType>) {
-			if (!this->contains(obj)) return;
-			auto itr = m_Container.extract(FIND(m_Container, obj, TUnfurled<TType>::get));
-			// Prefer move, but copy if not available
-			if constexpr (std::is_move_constructible_v<TType>) {
-				otr.push(std::move(itr.value()));
-			} else {
-				otr.push(itr.value());
-			}
+			return m_Container.extract(FIND(m_Container, obj, TUnfurled<TType>::get));
 		} else {
-			transfer(otr, *obj);
+			return extract(*obj);
 		}
 	}
 #endif
-
-	virtual void forEach(const std::function<void(const TType&)>& func) const override {
-		for (auto itr = m_Container.begin(); itr != m_Container.end(); ++itr) {
-			func(*itr);
-		}
-	}
 
 protected:
 
-	struct Hasher {
-		size_t operator()(const TType& p) const noexcept {
-#ifdef USING_SIMPLEARCHIVE
-			CHashArchive archive;
-			archive << p;
-			return archive.get();
-#else
-			return std::hash<TType>()(p);
-#endif
-		}
-	};
-
-	std::unordered_set<TType, Hasher> m_Container;
+	std::unordered_set<TType, ContainerHasher<TType>> m_Container;
 };
 
 template <typename TType, typename... TArgs>

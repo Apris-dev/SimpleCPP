@@ -9,7 +9,9 @@
 #endif
 
 template <typename TKeyType, typename TValueType>
-struct TMultiMap : TAssociativeContainer<TKeyType, TValueType> {
+struct TMultiMap : TAssociativeContainer<std::unordered_multimap<TKeyType, TValueType, ContainerHasher<TKeyType>>> {
+
+	using Super = TAssociativeContainer<std::unordered_multimap<TKeyType, TValueType, ContainerHasher<TKeyType>>>;
 
 	TMultiMap() = default;
 
@@ -35,14 +37,30 @@ struct TMultiMap : TAssociativeContainer<TKeyType, TValueType> {
 		return m_Container.size();
 	}
 
-	virtual TPair<TKeyType, const TValueType&> top() const override {
+	[[nodiscard]] virtual TPair<TKeyType, const TValueType&> top() const override {
 		return TPair<TKeyType, const TValueType&>{*m_Container.begin()};
 	}
 
-	virtual TPair<TKeyType, const TValueType&> bottom() const override {
+	[[nodiscard]] virtual TPair<TKeyType, const TValueType&> bottom() const override {
 		auto itr = m_Container.end();
 		std::advance(itr, -1);
 		return TPair<TKeyType, const TValueType&>{*itr};
+	}
+
+	[[nodiscard]] virtual typename Super::Iterator begin() noexcept override {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] virtual typename Super::ConstIterator begin() const noexcept override {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] virtual typename Super::Iterator end() noexcept override {
+		return m_Container.end();
+	}
+
+	[[nodiscard]] virtual typename Super::ConstIterator end() const noexcept override {
+		return m_Container.end();
 	}
 
 	virtual bool contains(const TKeyType& key) const override {
@@ -151,14 +169,8 @@ struct TMultiMap : TAssociativeContainer<TKeyType, TValueType> {
 		m_Container.erase(key);
 	}
 
-	virtual void transfer(TAssociativeContainer<TKeyType, TValueType>& otr, const TKeyType& key) override {
-		auto itr = m_Container.extract(m_Container.find(key));
-		// Prefer move, but copy if not available
-		if constexpr (std::is_move_constructible_v<TValueType>) {
-			otr.push(itr.key(), std::move(itr.mapped()));
-		} else {
-			otr.push(itr.key(), itr.mapped());
-		}
+	virtual typename std::unordered_multimap<TKeyType, TValueType, ContainerHasher<TKeyType>>::node_type extract(const TKeyType& key) override {
+		return m_Container.extract(m_Container.find(key));
 	}
 
 	virtual void forEach(const std::function<void(TPair<TKeyType, const TValueType&>)>& func) const override {
@@ -169,19 +181,7 @@ struct TMultiMap : TAssociativeContainer<TKeyType, TValueType> {
 
 protected:
 
-	struct Hasher {
-		size_t operator()(const TKeyType& p) const noexcept {
-#ifdef USING_SIMPLEARCHIVE
-			CHashArchive archive;
-			archive << p;
-			return archive.get();
-#else
-			return std::hash<TKeyType>()(p);
-#endif
-		}
-	};
-
-	std::unordered_multimap<TKeyType, TValueType, Hasher> m_Container;
+	std::unordered_multimap<TKeyType, TValueType, ContainerHasher<TKeyType>> m_Container;
 };
 
 template <typename TKeyType, typename TValueType>
