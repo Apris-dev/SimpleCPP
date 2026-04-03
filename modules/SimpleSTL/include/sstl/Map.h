@@ -9,9 +9,9 @@
 #endif
 
 template <typename TKeyType, typename TValueType>
-struct TMap : TAssociativeContainer<std::unordered_map<TKeyType, TValueType, ContainerHasher<TKeyType>>> {
+struct TMap : TAssociativeContainer<std::unordered_map<TKeyType, TValueType, TContainerHasher<TKeyType>>> {
 
-	using Super = TAssociativeContainer<std::unordered_map<TKeyType, TValueType, ContainerHasher<TKeyType>>>;
+	using Super = TAssociativeContainer<std::unordered_map<TKeyType, TValueType, TContainerHasher<TKeyType>>>;
 
 	TMap() = default;
 
@@ -169,7 +169,7 @@ struct TMap : TAssociativeContainer<std::unordered_map<TKeyType, TValueType, Con
 		m_Container.erase(key);
 	}
 
-	virtual typename std::unordered_map<TKeyType, TValueType, ContainerHasher<TKeyType>>::node_type extract(const TKeyType& key) override {
+	virtual typename std::unordered_map<TKeyType, TValueType, TContainerHasher<TKeyType>>::node_type extract(const TKeyType& key) override {
 		return m_Container.extract(m_Container.find(key));
 	}
 
@@ -181,7 +181,7 @@ struct TMap : TAssociativeContainer<std::unordered_map<TKeyType, TValueType, Con
 
 protected:
 
-	std::unordered_map<TKeyType, TValueType, ContainerHasher<TKeyType>> m_Container;
+	std::unordered_map<TKeyType, TValueType, TContainerHasher<TKeyType>> m_Container;
 };
 
 template <typename TKeyType, typename TValueType>

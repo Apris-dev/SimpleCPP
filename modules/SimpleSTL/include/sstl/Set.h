@@ -5,9 +5,9 @@
 #include "sutil/InitializerList.h"
 
 template <typename TType>
-struct TSet : TSingleAssociativeContainer<std::unordered_set<TType, ContainerHasher<TType>>> {
+struct TSet : TSingleAssociativeContainer<std::unordered_set<TType, TContainerHasher<TType>>> {
 
-	using Super = TSingleAssociativeContainer<std::unordered_set<TType, ContainerHasher<TType>>>;
+	using Super = TSingleAssociativeContainer<std::unordered_set<TType, TContainerHasher<TType>>>;
 
 	TSet() = default;
 
@@ -156,12 +156,12 @@ struct TSet : TSingleAssociativeContainer<std::unordered_set<TType, ContainerHas
 	}
 #endif
 
-	virtual typename std::unordered_set<TType, ContainerHasher<TType>>::node_type extract(TType& obj) override {
+	virtual typename std::unordered_set<TType, TContainerHasher<TType>>::node_type extract(TType& obj) override {
 		return m_Container.extract(m_Container.find(obj));
 	}
 
 #ifdef USING_SIMPLEPTR
-	virtual typename std::unordered_set<TType, ContainerHasher<TType>>::node_type extract(typename TUnfurled<TType>::Type* obj) override {
+	virtual typename std::unordered_set<TType, TContainerHasher<TType>>::node_type extract(typename TUnfurled<TType>::Type* obj) override {
 		if constexpr (sstl::is_managed_v<TType>) {
 			return m_Container.extract(FIND(m_Container, obj, TUnfurled<TType>::get));
 		} else {
@@ -172,7 +172,7 @@ struct TSet : TSingleAssociativeContainer<std::unordered_set<TType, ContainerHas
 
 protected:
 
-	std::unordered_set<TType, ContainerHasher<TType>> m_Container;
+	std::unordered_set<TType, TContainerHasher<TType>> m_Container;
 };
 
 template <typename TType, typename... TArgs>

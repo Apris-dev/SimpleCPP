@@ -146,7 +146,7 @@ struct TVirtualIterator {
 };
 
 template <typename TType>
-struct ContainerHasher {
+struct TContainerHasher {
 	size_t operator()(const TType& p) const noexcept {
 #ifdef USING_SIMPLEARCHIVE
 		CHashArchive archive;
