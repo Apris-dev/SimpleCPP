@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <type_traits>
+#include <initializer_list>
 
 namespace sstl {
     template <class TType, class... TArgs>

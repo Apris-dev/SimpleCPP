@@ -1,10 +1,7 @@
 #pragma once
 
-#include <cassert>
 #include <charconv>
-#include <sstream>
 #include <string>
-#include <functional>
 
 #include "sutil/InitializerList.h"
 #include "sutil/Pair.h"

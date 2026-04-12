@@ -23,7 +23,11 @@
 #include "sutil/Pair.h"
 
 #if CXX_VERSION >= 20
+#ifdef USING_MSVC
 #define FIND(c, x, ...) std::ranges::find(c, x, ##__VA_ARGS__)
+#else
+#define FIND(c, x, ...) std::ranges::find(c, x __VA_OPT__(,) __VA_ARGS__)
+#endif
 #define ERASE(c, x, ...) c.erase(FIND(c, x, __VA_ARGS__))
 #define ASSOCIATIVE_CONTAINS(c, x) c.contains(x)
 #define DISTANCE(c, x, ...) std::ranges::distance(c.begin(), FIND(c, x, __VA_ARGS__))
@@ -367,7 +371,7 @@ struct TSequenceContainer {
 // Designed to be a container with a key for indexing
 // Note: always requires a comparable key type
 template <typename TContainerType,
-	std::enable_if_t<sutil::is_equality_comparable_v<typename TContainerType::key_type>, int> = 0
+	std::enable_if_t<sutil::is_equality_comparable_v<typename TContainerType::key_type, typename TContainerType::key_type>, int> = 0
 >
 struct TAssociativeContainer {
 
@@ -510,7 +514,7 @@ public:
 // Designed to be a container without indexing
 // Note: always requires a comparable type
 template <typename TContainerType,
-	std::enable_if_t<sutil::is_equality_comparable_v<typename TContainerType::value_type>, int> = 0
+	std::enable_if_t<sutil::is_equality_comparable_v<typename TContainerType::value_type, typename TContainerType::value_type>, int> = 0
 >
 struct TSingleAssociativeContainer {
 

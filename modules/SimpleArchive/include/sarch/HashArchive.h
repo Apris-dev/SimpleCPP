@@ -2,7 +2,11 @@
 
 #include <type_traits>
 #include <cstring>
-#include <cstdint>
+#include <limits>
+
+#if CXX_VERSION >= 20
+#include <bit>
+#endif
 
 #include "Archive.h"
 

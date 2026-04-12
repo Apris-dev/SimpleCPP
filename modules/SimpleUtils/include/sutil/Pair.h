@@ -1,7 +1,20 @@
 ﻿#pragma once
 
-#include <utility>
+#include <type_traits>
 
+#ifndef USING_MSVC
+#include <bits/stl_pair.h>
+#else
+#include <utility>
+#endif
+
+#ifndef USING_MSVC
+template <typename TType>
+using implicitly_default_constructible = std::__is_implicitly_default_constructible<TType>;
+#else
+template <typename TType>
+using implicitly_default_constructible = std::_Is_implicitly_default_constructible<TType>;
+#endif
 // To keep it simpler than the default std::pair, we rewrite it to be more usable.
 // Not used internally in maps, just for Container use for implicit conversion and easy usage
 template <typename TKeyType, typename TValueType>
@@ -14,7 +27,7 @@ struct TPair {
         std::enable_if_t<std::conjunction_v<std::is_default_constructible<TOtherKeyType>, std::is_default_constructible<TOtherValueType>>, int> = 0
 	>
 #if CXX_VERSION >= 20
-	constexpr explicit(!std::conjunction_v<std::_Is_implicitly_default_constructible<TOtherKeyType>, std::_Is_implicitly_default_constructible<TOtherValueType>>)
+	constexpr explicit(!std::conjunction_v<implicitly_default_constructible<TOtherKeyType>, implicitly_default_constructible<TOtherValueType>>)
 #endif
 	TPair()
 	noexcept(std::is_nothrow_default_constructible_v<TOtherKeyType> && std::is_nothrow_default_constructible_v<TOtherValueType>) // strengthened
