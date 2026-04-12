@@ -31,6 +31,10 @@ struct TPriorityMultiSet : TSingleAssociativeContainer<std::multiset<TType>> {
 		return m_Container.size();
 	}
 
+	[[nodiscard]] virtual bool isEmpty() const override {
+		return m_Container.empty();
+	}
+
 	[[nodiscard]] virtual const TType& top() const override {
 		return *m_Container.begin();
 	}

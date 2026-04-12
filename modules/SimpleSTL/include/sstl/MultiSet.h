@@ -34,6 +34,10 @@ struct TMultiSet : TSingleAssociativeContainer<std::unordered_multiset<TType, TC
 		return m_Container.size();
 	}
 
+	[[nodiscard]] virtual bool isEmpty() const override {
+		return m_Container.empty();
+	}
+
 	[[nodiscard]] virtual const TType& top() const override {
 		return *m_Container.begin();
 	}

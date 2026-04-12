@@ -177,6 +177,10 @@ struct TSequenceContainer {
 	[[nodiscard]] virtual size_t getSize() const
 		GUARANTEED
 
+	// Returns if the container is empty
+	[[nodiscard]] virtual bool isEmpty() const
+		GUARANTEED
+
 	// Gets the first element possible, or the 'top' of the container
 	[[nodiscard]] virtual TType& top()
 		GUARANTEED
@@ -386,6 +390,10 @@ struct TAssociativeContainer {
 	[[nodiscard]] virtual size_t getSize() const
 		GUARANTEED
 
+	// Returns if the container is empty
+	[[nodiscard]] virtual bool isEmpty() const
+		GUARANTEED
+
 	// Gets the first element possible, or the 'top' of the container
 	[[nodiscard]] virtual TPair<TKeyType, const TValueType&> top() const
 		GUARANTEED
@@ -526,6 +534,10 @@ struct TSingleAssociativeContainer {
 
 	// Returns the size of the container
 	[[nodiscard]] virtual size_t getSize() const
+		GUARANTEED
+
+	// Returns if the container is empty
+	[[nodiscard]] virtual bool isEmpty() const
 		GUARANTEED
 
 	// Gets the first element possible, or the 'top' of the container

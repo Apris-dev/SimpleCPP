@@ -33,6 +33,10 @@ struct TPriorityMap : TAssociativeContainer<std::map<TKeyType, TValueType>> {
 		return m_Container.size();
 	}
 
+	[[nodiscard]] virtual bool isEmpty() const override {
+		return m_Container.empty();
+	}
+
 	[[nodiscard]] virtual TPair<TKeyType, const TValueType&> top() const override {
 		return TPair<TKeyType, const TValueType&>{*m_Container.begin()};
 	}

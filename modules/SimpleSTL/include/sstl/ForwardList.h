@@ -29,6 +29,10 @@ struct TForwardList : TSequenceContainer<std::forward_list<TType>> {
 		return SIZE(m_Container);
 	}
 
+	[[nodiscard]] virtual bool isEmpty() const override {
+		return m_Container.empty();
+	}
+
 	[[nodiscard]] virtual TType& top() override {
 		return m_Container.front();
 	}

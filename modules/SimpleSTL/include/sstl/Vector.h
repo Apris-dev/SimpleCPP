@@ -30,6 +30,10 @@ struct TVector : TSequenceContainer<std::vector<TType>> {
 		return m_Container.size();
 	}
 
+	[[nodiscard]] virtual bool isEmpty() const override {
+		return m_Container.empty();
+	}
+
 	[[nodiscard]] TType* data() { return m_Container.data(); }
 
 	[[nodiscard]] const TType* data() const { return m_Container.data(); }

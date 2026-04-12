@@ -29,6 +29,10 @@ struct TList : TSequenceContainer<std::list<TType>> {
 		return m_Container.size();
 	}
 
+	[[nodiscard]] virtual bool isEmpty() const override {
+		return m_Container.empty();
+	}
+
 	[[nodiscard]] virtual TType& top() override {
 		return m_Container.front();
 	}
