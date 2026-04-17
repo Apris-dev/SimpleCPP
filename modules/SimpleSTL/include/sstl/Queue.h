@@ -4,101 +4,129 @@
 
 // std::queue is already a wrapper around a deque, so we do that here too, and skip std::queue's own abstraction
 template <typename TType>
-struct TQueue : TDeque<TType> {
+struct TQueue : TSequenceContainer<TQueue<TType>> {
 
-	using TDeque<TType>::m_Container;
-	
+	using Super = TSequenceContainer<TQueue>;
+
 	TQueue() = default;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_copy_constructible_v<TOtherType>, int> = 0
 	>
-	TQueue(TInitializerList<TType> init): TDeque<TType>(init) {}
+	TQueue(TInitializerList<TType> init): m_Container(init) {}
 
 	template <typename... TArgs,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TType, TArgs>...>, int> = 0
 	>
-	explicit TQueue(TArgs&&... args): TDeque<TType>(std::forward<TArgs>(args)...) {}
+	explicit TQueue(TArgs&&... args) {
+		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
+	}
+	
+	TQueue(const std::deque<TType>& otr): m_Container(otr) {}
 
-	TQueue(const std::deque<TType>& otr): TDeque<TType>::m_Container(otr) {}
-
-	virtual TType& top() override {
-		return m_Container.back();
+	[[nodiscard]] size_t getSize() const {
+		return m_Container.size();
 	}
 
-	virtual const TType& top() const override {
-		return m_Container.back();
+	[[nodiscard]] bool isEmpty() const {
+		return m_Container.empty();
 	}
 
-	virtual size_t push(const TType& obj) override {
-		if constexpr (std::is_copy_constructible_v<TType>) {
-			m_Container.emplace_back(obj);
-			return TDeque<TType>::getSize() - 1;
+	[[nodiscard]] TType& top() {
+		return m_Container.front();
+	}
+
+	[[nodiscard]] const TType& top() const {
+		return m_Container.front();
+	}
+
+	[[nodiscard]] typename Super::ConstIterator begin() const noexcept { return m_Container.begin(); }
+
+	[[nodiscard]] typename Super::ConstIterator end() const noexcept { return m_Container.end(); }
+
+	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
+	bool contains(const TType& obj) const {
+		return CONTAINS(m_Container, obj);
+	}
+
+#ifdef USING_SIMPLEPTR
+	bool contains(typename TUnfurled<TType>::Type* obj) const {
+		if constexpr (sstl::is_managed_v<TType>) {
+			// Will compare pointers, is always comparable
+			return CONTAINS(m_Container, obj, TUnfurled<TType>::get);
 		} else {
-			throw std::runtime_error("Type is not copyable");
+			return contains(*obj);
+		}
+	}
+#endif
+
+	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
+	size_t find(const TType& obj) const {
+		return DISTANCE(m_Container, obj);
+	}
+
+#ifdef USING_SIMPLEPTR
+	size_t find(typename TUnfurled<TType>::Type* obj) const {
+		if constexpr (sstl::is_managed_v<TType>) {
+			// Will compare pointers, is always comparable
+			return DISTANCE(m_Container, obj, TUnfurled<TType>::get);
+		} else {
+			return find(*obj);
+		}
+	}
+#endif
+
+	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
+	void resize(size_t amt) {
+		m_Container.resize(amt);
+	}
+
+	void resize(const size_t amt, std::function<TType(size_t)> func) {
+		const size_t previousSize = getSize();
+		for (size_t i = previousSize; i < amt; ++i) {
+			m_Container.emplace_back(std::forward<TType>(func(i)));
 		}
 	}
 
-	virtual size_t push(TType&& obj) override {
-		if constexpr (std::is_move_constructible_v<TType>) {
-			m_Container.emplace_back(std::move(obj));
-			return TDeque<TType>::getSize() - 1;
-		} else {
-			throw std::runtime_error("Type is not moveable");
-		}
+	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
+	TType& push() {
+		m_Container.emplace_back();
+		return top();
 	}
 
-	virtual void replace(const size_t index, const TType& obj) override {
-		if constexpr (std::is_copy_constructible_v<TType>) {
-			TDeque<TType>::popAt(index);
-			TDeque<TType>::push(index, obj);
-		} else {
-			throw std::runtime_error("Type is not copyable");
-		}
+	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
+	size_t push(const TType& obj) {
+		m_Container.emplace_back(obj);
+		return getSize() - 1;
 	}
 
-	virtual void replace(const size_t index, TType&& obj) override {
-		if constexpr (std::is_move_constructible_v<TType>) {
-			TDeque<TType>::popAt(index);
-			TDeque<TType>::push(index, std::move(obj));
-		} else {
-			throw std::runtime_error("Type is not moveable");
-		}
+	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
+	size_t push(TType&& obj) {
+		m_Container.emplace_back(std::move(obj));
+		return getSize() - 1;
 	}
 
-	virtual void pop() override {
-		TDeque<TType>::popAt(TDeque<TType>::getSize() - 1);
+	void clear() {
+		m_Container.clear();
+	}
+
+	void pop() {
+		m_Container.pop_front();
 	}
 
 protected:
 
-	virtual TType& bottom() override {
-		return TDeque<TType>::bottom();
-	}
+	std::deque<TType> m_Container;
+};
 
-	virtual const TType& bottom() const override {
-		return TDeque<TType>::bottom();
-	}
-
-	virtual TType& get(size_t index) override {
-		return TDeque<TType>::get(index);
-	}
-
-	virtual const TType& get(size_t index) const override {
-		return TDeque<TType>::get(index);
-	}
-
-	virtual void push(const size_t index, const TType& obj) override {
-		TDeque<TType>::push(index, obj);
-	}
-
-	virtual void push(const size_t index, TType&& obj) override {
-		TDeque<TType>::push(index, std::move(obj));
-	}
-
-	virtual void popAt(const size_t index) override {
-		TDeque<TType>::popAt(index);
-	}
+template <typename TType>
+struct TContainerTraits<TQueue<TType>> {
+	using Type = TType;
+	using ContainerType = std::deque<TType>;
+	using Iterator = typename ContainerType::iterator;
+	using ConstIterator = typename ContainerType::const_iterator;
+	constexpr static bool bIsContiguousMemory = false;
+	constexpr static bool bIsLimitedAccess = true;
 };
 
 template <typename TType, typename... TArgs>

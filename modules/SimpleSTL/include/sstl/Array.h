@@ -5,9 +5,9 @@
 #include "sutil/InitializerList.h"
 
 template <typename TType, size_t TSize>
-struct TArray : TSequenceContainer<std::array<TType, TSize>> {
+struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
-	using Super = TSequenceContainer<std::array<TType, TSize>>;
+	using Super = TSequenceContainer<TArray>;
 
 	_CONSTEXPR20 TArray() {
 		m_IsPopulated.fill(false);
@@ -45,11 +45,11 @@ struct TArray : TSequenceContainer<std::array<TType, TSize>> {
 		m_IsPopulated.fill(true);
 	}
 
-	[[nodiscard]] virtual size_t getSize() const override {
+	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
 	}
 
-	[[nodiscard]] virtual bool isEmpty() const override {
+	[[nodiscard]] bool isEmpty() const {
 		return m_Container.empty();
 	}
 
@@ -57,52 +57,49 @@ struct TArray : TSequenceContainer<std::array<TType, TSize>> {
 
 	[[nodiscard]] const TType* data() const { return m_Container.data(); }
 
-	[[nodiscard]] virtual TType& top() override {
+	[[nodiscard]] TType& top() {
 		return m_Container.front();
 	}
 
-	[[nodiscard]] virtual const TType& top() const override {
+	[[nodiscard]] const TType& top() const {
 		return m_Container.front();
 	}
 
-	[[nodiscard]] virtual TType& bottom() override {
+	[[nodiscard]] TType& bottom() {
 		return m_Container.back();
 	}
 
-	[[nodiscard]] virtual const TType& bottom() const override {
+	[[nodiscard]] const TType& bottom() const {
 		return m_Container.back();
 	}
 
-	[[nodiscard]] virtual typename Super::Iterator begin() noexcept override {
+	[[nodiscard]] typename Super::Iterator begin() noexcept {
 		return m_Container.begin();
 	}
 
-	[[nodiscard]] virtual typename Super::ConstIterator begin() const noexcept override {
+	[[nodiscard]] typename Super::ConstIterator begin() const noexcept {
 		return m_Container.begin();
 	}
 
-	[[nodiscard]] virtual typename Super::Iterator end() noexcept override {
+	[[nodiscard]] typename Super::Iterator end() noexcept {
 		return m_Container.end();
 	}
 
-	[[nodiscard]] virtual typename Super::ConstIterator end() const noexcept override {
+	[[nodiscard]] typename Super::ConstIterator end() const noexcept {
 		return m_Container.end();
 	}
 
-	[[nodiscard]] virtual bool containsAt(size_t index) const override {
+	[[nodiscard]] bool containsAt(size_t index) const {
 		return m_IsPopulated[index];
 	}
 
-	virtual bool contains(const TType& obj) const override {
-		if constexpr (sutil::is_equality_comparable_v<TType>) {
-			return CONTAINS(m_Container, obj);
-		} else {
-			throw std::runtime_error("Type is not comparable!");
-		}
+	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
+	bool contains(const TType& obj) const {
+		return CONTAINS(m_Container, obj);
 	}
 
 #ifdef USING_SIMPLEPTR
-	virtual bool contains(typename TUnfurled<TType>::Type* obj) const override {
+	bool contains(typename TUnfurled<TType>::Type* obj) const {
 		if constexpr (sstl::is_managed_v<TType>) {
 			// Will compare pointers, is always comparable
 			return CONTAINS(m_Container, obj, TUnfurled<TType>::get);
@@ -112,16 +109,13 @@ struct TArray : TSequenceContainer<std::array<TType, TSize>> {
 	}
 #endif
 
-	virtual size_t find(const TType& obj) const override {
-		if constexpr (sutil::is_equality_comparable_v<TType>) {
-			return DISTANCE(m_Container, obj);
-		} else {
-			throw std::runtime_error("Type is not comparable!");
-		}
+	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
+	size_t find(const TType& obj) const {
+		return DISTANCE(m_Container, obj);
 	}
 
 #ifdef USING_SIMPLEPTR
-	virtual size_t find(typename TUnfurled<TType>::Type* obj) const override {
+	size_t find(typename TUnfurled<TType>::Type* obj) const {
 		if constexpr (sstl::is_managed_v<TType>) {
 			// Will compare pointers, is always comparable
 			return DISTANCE(m_Container, obj, TUnfurled<TType>::get);
@@ -131,28 +125,25 @@ struct TArray : TSequenceContainer<std::array<TType, TSize>> {
 	}
 #endif
 
-	virtual TType& get(size_t index) override {
+	TType& get(size_t index) {
 		return m_Container[index];
 	}
 
-	virtual const TType& get(size_t index) const override {
+	const TType& get(size_t index) const {
 		return m_Container[index];
 	}
 
-	virtual void resize(size_t amt) override {
-		if constexpr (std::is_default_constructible_v<TType>) {
-			for (size_t i = 0; i < amt; ++i) {
-				if (!m_IsPopulated[i]) {
-					m_Container[i] = {};
-					m_IsPopulated[i] = true;
-				}
+	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
+	void resize(size_t amt) {
+		for (size_t i = 0; i < amt; ++i) {
+			if (!m_IsPopulated[i]) {
+				m_Container[i] = {};
+				m_IsPopulated[i] = true;
 			}
-		} else {
-			throw std::runtime_error("Type is not default constructible!");
 		}
 	}
 
-	virtual void resize(const size_t amt, std::function<TType(size_t)> func) override {
+	void resize(const size_t amt, std::function<TType(size_t)> func) {
 		for (size_t i = 0; i < amt; ++i) {
 			if (!m_IsPopulated[i]) {
 				get(i) = std::forward<TType>(func(i));
@@ -161,82 +152,67 @@ struct TArray : TSequenceContainer<std::array<TType, TSize>> {
 		}
 	}
 
-	virtual void fill() {
+	void fill() {
 		resize(TSize);
 	}
 
-	virtual void resize(std::function<TType(size_t)> func) {
+	void resize(std::function<TType(size_t)> func) {
 		resize(TSize, func);
 	}
 
-	virtual TType& push() override {
-		if constexpr (std::is_default_constructible_v<TType>) {
-			return get(push(TType{}));
-		} else {
-			throw std::runtime_error("Type is not default constructible!");
-		}
+	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
+	TType& push() {
+		return get(push(TType{}));
 	}
 
-	virtual size_t push(const TType& obj) override {
-		if constexpr (std::is_copy_constructible_v<TType>) {
-			for (size_t i = 0; i < getSize(); ++i) {
-				if (!m_IsPopulated[i]) { //is not populated
-					m_IsPopulated[i] = true;
-					m_Container[i] = obj;
-					return i;
-				}
+	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
+	size_t push(const TType& obj) {
+		for (size_t i = 0; i < getSize(); ++i) {
+			if (!m_IsPopulated[i]) { //is not populated
+				m_IsPopulated[i] = true;
+				m_Container[i] = obj;
+				return i;
 			}
-			throw std::runtime_error("Array is full, cannot add any more elements.");
-		} else {
-			throw std::runtime_error("Type is not copyable!");
 		}
+		throw std::runtime_error("Array is full, cannot add any more elements.");
 	}
 
-	virtual size_t push(TType&& obj) override {
-		if constexpr (std::is_move_constructible_v<TType>) {
-			for (size_t i = 0; i < getSize(); ++i) {
-				if (!m_IsPopulated[i]) { //is not populated
-					m_IsPopulated[i] = true;
-					m_Container[i] = std::move(obj);
-					return i;
-				}
+	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
+	size_t push(TType&& obj) {
+		for (size_t i = 0; i < getSize(); ++i) {
+			if (!m_IsPopulated[i]) { //is not populated
+				m_IsPopulated[i] = true;
+				m_Container[i] = std::move(obj);
+				return i;
 			}
-			throw std::runtime_error("Array is full, cannot add any more elements.");
-		} else {
-			throw std::runtime_error("Type is not moveable!");
 		}
+		throw std::runtime_error("Array is full, cannot add any more elements.");
 	}
 
-	virtual void push(const size_t index, const TType& obj) override {
+	void push(const size_t index, const TType& obj) {
 		replace(index, obj);
 	}
 
-	virtual void push(const size_t index, TType&& obj) override {
+	void push(const size_t index, TType&& obj) {
 		replace(index, std::move(obj));
 	}
 
-	virtual void replace(const size_t index, const TType& obj) override {
-		if constexpr (std::is_copy_constructible_v<TType>) {
-			m_Container[index] = obj;
-		} else {
-			throw std::runtime_error("Type is not copyable!");
-		}
+	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
+	void replace(const size_t index, const TType& obj) {
+		m_Container[index] = obj;
 	}
 
-	virtual void replace(const size_t index, TType&& obj) override {
-		if constexpr (std::is_move_constructible_v<TType>) {
-			m_Container[index] = std::move(obj);
-		} else {
-			throw std::runtime_error("Type is not moveable!");
-		}
+	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
+	void replace(const size_t index, TType&& obj) {
+		m_Container[index] = std::move(obj);
 	}
 
 	// Array is on stack, it is destroyed when out of scope
-	virtual void clear() override {
+	void clear() {
 		m_IsPopulated.fill(false);
 	}
 
-	virtual void pop() override {
+	void pop() {
 		for (size_t i = getSize(); i > 0; --i) {
 			if (m_IsPopulated[i - 1]) { //is populated
 				m_IsPopulated[i - 1] = false;
@@ -246,7 +222,7 @@ struct TArray : TSequenceContainer<std::array<TType, TSize>> {
 		throw std::runtime_error("No element to be popped!");
 	}
 
-	virtual void popAt(const size_t index) override {
+	void popAt(const size_t index) {
 		if (m_IsPopulated[index]) { //is populated
 			m_IsPopulated[index] = false;
 			return;
@@ -254,20 +230,17 @@ struct TArray : TSequenceContainer<std::array<TType, TSize>> {
 		throw std::runtime_error("No element at index to be popped!");
 	}
 
-	virtual void pop(const TType& obj) override {
-		if constexpr (sutil::is_equality_comparable_v<TType>) {
-			for (size_t index = 0; index < getSize(); ++index) {
-				if (m_Container[index] == obj) {
-					m_IsPopulated[index] = false;
-				}
+	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
+	void pop(const TType& obj) {
+		for (size_t index = 0; index < getSize(); ++index) {
+			if (m_Container[index] == obj) {
+				m_IsPopulated[index] = false;
 			}
-		} else {
-			throw std::runtime_error("Type is not comparable!");
 		}
 	}
 
 #ifdef USING_SIMPLEPTR
-	virtual void pop(typename TUnfurled<TType>::Type* obj) override {
+	void pop(typename TUnfurled<TType>::Type* obj) {
 		if constexpr (sstl::is_managed_v<TType>) {
 			for (size_t index = 0; index < getSize(); ++index) {
 				// Will compare pointers, is always comparable
@@ -280,6 +253,18 @@ struct TArray : TSequenceContainer<std::array<TType, TSize>> {
 		}
 	}
 #endif
+
+	template <typename TOtherContainerType>
+	void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {
+		// Prefer move, but copy if not available
+		auto& obj = get(index);
+		if constexpr (std::is_move_constructible_v<TType>) {
+			otr.push(std::move(obj));
+		} else {
+			otr.push(obj);
+		}
+		popAt(index);
+	}
 
 protected:
 
@@ -297,4 +282,14 @@ protected:
 
 	std::array<bool, TSize> m_IsPopulated;
 	std::array<TType, TSize> m_Container;
+};
+
+template <typename TType, size_t TSize>
+struct TContainerTraits<TArray<TType, TSize>> {
+	using Type = TType;
+	using ContainerType = std::array<TType, TSize>;
+	using Iterator = typename ContainerType::iterator;
+	using ConstIterator = typename ContainerType::const_iterator;
+	constexpr static bool bIsContiguousMemory = true;
+	constexpr static bool bIsLimitedAccess = false;
 };

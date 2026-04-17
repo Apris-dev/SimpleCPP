@@ -5,9 +5,9 @@
 #include "sutil/InitializerList.h"
 
 template <typename TType>
-struct TForwardList : TSequenceContainer<std::forward_list<TType>> {
+struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 
-	using Super = TSequenceContainer<std::forward_list<TType>>;
+	using Super = TSequenceContainer<TForwardList>;
 
 	TForwardList() = default;
 
@@ -25,48 +25,45 @@ struct TForwardList : TSequenceContainer<std::forward_list<TType>> {
 
 	TForwardList(const std::forward_list<TType>& otr): m_Container(otr) {}
 
-	[[nodiscard]] virtual size_t getSize() const override {
+	[[nodiscard]] size_t getSize() const {
 		return SIZE(m_Container);
 	}
 
-	[[nodiscard]] virtual bool isEmpty() const override {
+	[[nodiscard]] bool isEmpty() const {
 		return m_Container.empty();
 	}
 
-	[[nodiscard]] virtual TType& top() override {
+	[[nodiscard]] TType& top() {
 		return m_Container.front();
 	}
 
-	[[nodiscard]] virtual const TType& top() const override {
+	[[nodiscard]] const TType& top() const {
 		return m_Container.front();
 	}
 
-	[[nodiscard]] virtual typename Super::Iterator begin() noexcept override {
+	[[nodiscard]] typename Super::Iterator begin() noexcept {
 		return m_Container.begin();
 	}
 
-	[[nodiscard]] virtual typename Super::ConstIterator begin() const noexcept override {
+	[[nodiscard]] typename Super::ConstIterator begin() const noexcept {
 		return m_Container.begin();
 	}
 
-	[[nodiscard]] virtual typename Super::Iterator end() noexcept override {
+	[[nodiscard]] typename Super::Iterator end() noexcept {
 		return m_Container.end();
 	}
 
-	[[nodiscard]] virtual typename Super::ConstIterator end() const noexcept override {
+	[[nodiscard]] typename Super::ConstIterator end() const noexcept {
 		return m_Container.end();
 	}
 
-	virtual bool contains(const TType& obj) const override {
-		if constexpr (sutil::is_equality_comparable_v<TType>) {
-			return CONTAINS(m_Container, obj);
-		} else {
-			throw std::runtime_error("Type is not comparable!");
-		}
+	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
+	bool contains(const TType& obj) const {
+		return CONTAINS(m_Container, obj);
 	}
 
 #ifdef USING_SIMPLEPTR
-	virtual bool contains(typename TUnfurled<TType>::Type* obj) const override {
+	bool contains(typename TUnfurled<TType>::Type* obj) const {
 		if constexpr (sstl::is_managed_v<TType>) {
 			// Will compare pointers, is always comparable
 			return CONTAINS(m_Container, obj, TUnfurled<TType>::get);
@@ -76,16 +73,13 @@ struct TForwardList : TSequenceContainer<std::forward_list<TType>> {
 	}
 #endif
 
-	virtual size_t find(const TType& obj) const override {
-		if constexpr (sutil::is_equality_comparable_v<TType>) {
-			return DISTANCE(m_Container, obj);
-		} else {
-			throw std::runtime_error("Type is not comparable!");
-		}
+	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
+	size_t find(const TType& obj) const {
+		return DISTANCE(m_Container, obj);
 	}
 
 #ifdef USING_SIMPLEPTR
-	virtual size_t find(typename TUnfurled<TType>::Type* obj) const override {
+	size_t find(typename TUnfurled<TType>::Type* obj) const {
 		if constexpr (sstl::is_managed_v<TType>) {
 			// Will compare pointers, is always comparable
 			return DISTANCE(m_Container, obj, TUnfurled<TType>::get);
@@ -95,122 +89,95 @@ struct TForwardList : TSequenceContainer<std::forward_list<TType>> {
 	}
 #endif
 
-	virtual TType& get(size_t index) override {
+	TType& get(size_t index) {
 		auto itr = m_Container.begin();
 		std::advance(itr, index);
 		return *itr;
 	}
 
-	virtual const TType& get(size_t index) const override {
+	const TType& get(size_t index) const {
 		auto itr = m_Container.begin();
 		std::advance(itr, index);
 		return *itr;
 	}
 
-	virtual void resize(size_t amt) override {
-		if constexpr (std::is_default_constructible_v<TType>) {
-			m_Container.resize(amt);
-		} else {
-			throw std::runtime_error("Type is not default constructible!");
-		}
+	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
+	void resize(size_t amt) {
+		m_Container.resize(amt);
 	}
 
-	virtual void resize(const size_t amt, std::function<TType(size_t)> func) override {
+	void resize(const size_t amt, std::function<TType(size_t)> func) {
 		const size_t previousSize = getSize();
 		for (size_t i = previousSize; i < amt; ++i) {
 			m_Container.emplace_front(std::forward<TType>(func(i)));
 		}
 	}
 
-	virtual TType& push() override {
-		if constexpr (std::is_default_constructible_v<TType>) {
-			m_Container.emplace_front();
-			return get(getSize() - 1);
-		} else {
-			throw std::runtime_error("Type is not default constructible!");
-		}
+	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
+	TType& push() {
+		m_Container.emplace_front();
+		return get(getSize() - 1);
 	}
 
-	virtual size_t push(const TType& obj) override {
-		if constexpr (std::is_copy_constructible_v<TType>) {
-			m_Container.emplace_front(obj);
-			return getSize() - 1;
-		} else {
-			throw std::runtime_error("Type is not copyable!");
-		}
+	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
+	size_t push(const TType& obj) {
+		m_Container.emplace_front(obj);
+		return getSize() - 1;
 	}
 
-	virtual size_t push(TType&& obj) override {
-		if constexpr (std::is_move_constructible_v<TType>) {
-			m_Container.emplace_front(std::move(obj));
-			return getSize() - 1;
-		} else {
-			throw std::runtime_error("Type is not moveable!");
-		}
+	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
+	size_t push(TType&& obj) {
+		m_Container.emplace_front(std::move(obj));
+		return getSize() - 1;
 	}
 
-	virtual void push(const size_t index, const TType& obj) override {
-		if constexpr (std::is_copy_constructible_v<TType>) {
-			auto itr = m_Container.before_begin();
-			std::advance(itr, index);
-			m_Container.insert_after(itr, obj);
-		} else {
-			throw std::runtime_error("Type is not copyable!");
-		}
+	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
+	void push(const size_t index, const TType& obj) {
+		auto itr = m_Container.before_begin();
+		std::advance(itr, index);
+		m_Container.insert_after(itr, obj);
 	}
 
-	virtual void push(const size_t index, TType&& obj) override {
-		if constexpr (std::is_move_constructible_v<TType>) {
-			auto itr = m_Container.before_begin();
-			std::advance(itr, index);
-			m_Container.insert_after(itr, std::move(obj));
-		} else {
-			throw std::runtime_error("Type is not moveable!");
-		}
+	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
+	void push(const size_t index, TType&& obj) {
+		auto itr = m_Container.before_begin();
+		std::advance(itr, index);
+		m_Container.insert_after(itr, std::move(obj));
 	}
 
-	virtual void replace(const size_t index, const TType& obj) override {
-		if constexpr (std::is_copy_constructible_v<TType>) {
-			popAt(index);
-			push(index, obj);
-		} else {
-			throw std::runtime_error("Type is not copyable!");
-		}
+	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
+	void replace(const size_t index, const TType& obj) {
+		popAt(index);
+		push(index, obj);
 	}
 
-	virtual void replace(const size_t index, TType&& obj) override {
-		if constexpr (std::is_move_constructible_v<TType>) {
-			popAt(index);
-			push(index, std::move(obj));
-		} else {
-			throw std::runtime_error("Type is not moveable!");
-		}
+	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
+	void replace(const size_t index, TType&& obj) {
+		popAt(index);
+		push(index, std::move(obj));
 	}
 
-	virtual void clear() override {
+	void clear() {
 		m_Container.clear();
 	}
 
-	virtual void pop() override {
+	void pop() {
 		m_Container.erase_after(m_Container.before_begin());
 	}
 
-	virtual void popAt(const size_t index) override {
+	void popAt(const size_t index) {
 		auto itr = m_Container.before_begin();
 		std::advance(itr, index);
 		m_Container.erase_after(itr);
 	}
 
-	virtual void pop(const TType& obj) override {
-		if constexpr (sutil::is_equality_comparable_v<TType>) {
-			m_Container.erase_after(std::remove(m_Container.before_begin(), m_Container.end(), obj), m_Container.end());
-		} else {
-			throw std::runtime_error("Type is not comparable!");
-		}
+	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
+	void pop(const TType& obj) {
+		m_Container.erase_after(std::remove(m_Container.before_begin(), m_Container.end(), obj), m_Container.end());
 	}
 
 #ifdef USING_SIMPLEPTR
-	virtual void pop(typename TUnfurled<TType>::Type* obj) override {
+	void pop(typename TUnfurled<TType>::Type* obj) {
 		if constexpr (sstl::is_managed_v<TType>) {
 			// Will compare pointers, is always comparable
 			m_Container.erase_after(std::remove(m_Container.before_begin(), m_Container.end(), obj), m_Container.end());
@@ -220,19 +187,41 @@ struct TForwardList : TSequenceContainer<std::forward_list<TType>> {
 	}
 #endif
 
-	using Super::transfer;
+	template <typename TOtherContainerType>
+	void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {
+		// Prefer move, but copy if not available
+		auto& obj = get(index);
+		if constexpr (std::is_move_constructible_v<TType>) {
+			otr.push(std::move(obj));
+		} else {
+			otr.push(obj);
+		}
+		popAt(index);
+	}
 
-	virtual void transfer(Super& otr, const size_t index) override {
-		// Forward List transfer can use splicing
-		auto list = dynamic_cast<TForwardList*>(&otr);
+	// Forward List transfer can use splicing
+	void transfer(TSequenceContainer<TForwardList>& list, const size_t index) {
 		auto itr = m_Container.before_begin();
 		std::advance(itr, index);
-		list->m_Container.splice_after(list->m_Container.before_begin(), m_Container, itr);
+		list._derived().m_Container.splice_after(list._derived().m_Container.before_begin(), m_Container, itr);
 	}
 
 protected:
 
+	template <typename>
+	friend struct TList;
+
 	std::forward_list<TType> m_Container;
+};
+
+template <typename TType>
+struct TContainerTraits<TForwardList<TType>> {
+	using Type = TType;
+	using ContainerType = std::forward_list<TType>;
+	using Iterator = typename ContainerType::iterator;
+	using ConstIterator = typename ContainerType::const_iterator;
+	constexpr static bool bIsContiguousMemory = false;
+	constexpr static bool bIsLimitedAccess = false;
 };
 
 template <typename TType, typename... TArgs>

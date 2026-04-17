@@ -1,5 +1,10 @@
 ﻿#pragma once
 
+/*
+ * Container Base class designed to use CRTP to avoid runtime type deduction.
+ * This also has the added benefit of avoiding compiling functions with limited access. (Like stack/queue push at index)
+ */
+
 #include <functional>
 #include <stdexcept>
 #include <algorithm>
@@ -162,190 +167,187 @@ struct TContainerHasher {
 	}
 };
 
+template <typename>
+struct TContainerTraits;
+
 // A basic container of any amount of objects
 // A size of 0 implies a dynamic array
 template <typename TContainerType>
 struct TSequenceContainer {
 
-	using TType = typename TContainerType::value_type;
-	using Iterator = TVirtualIterator<typename TContainerType::iterator>;
-	using ConstIterator = TVirtualIterator<typename TContainerType::const_iterator>;
+	using Traits = TContainerTraits<TContainerType>;
 
-	virtual ~TSequenceContainer() = default;
+	using TType = typename Traits::Type;
+	using Iterator = TVirtualIterator<typename Traits::Iterator>;
+	using ConstIterator = TVirtualIterator<typename Traits::ConstIterator>;
+	constexpr static bool bIsContiguousMemory = Traits::bIsContiguousMemory;
+	constexpr static bool bIsLimitedAccess = Traits::bIsLimitedAccess;
+
+	//virtual ~TSequenceContainer() = default;
 
 	// Returns the size of the container
-	[[nodiscard]] virtual size_t getSize() const
-		GUARANTEED
+	[[nodiscard]] size_t getSize() const { return _derived().getSize(); }
 
 	// Returns if the container is empty
-	[[nodiscard]] virtual bool isEmpty() const
-		GUARANTEED
+	[[nodiscard]] bool isEmpty() const { return _derived().isEmpty(); }
 
 	// Gets the first element possible, or the 'top' of the container
-	[[nodiscard]] virtual TType& top()
-		GUARANTEED
-	// Gets the first element possible, or the 'top' of the container
-	[[nodiscard]] virtual const TType& top() const
-		GUARANTEED
+	[[nodiscard]] TType& top() { return _derived().top(); }
 
 	// Gets the first element possible, or the 'top' of the container
-	[[nodiscard]] virtual TType& bottom()
-		NOT_GUARANTEED
+	[[nodiscard]] const TType& top() const { return _derived().top(); }
+
 	// Gets the first element possible, or the 'top' of the container
-	[[nodiscard]] virtual const TType& bottom() const
-		NOT_GUARANTEED
-
-	[[nodiscard]] virtual Iterator begin() noexcept
-		GUARANTEED
-
-	[[nodiscard]] virtual ConstIterator begin() const noexcept
-		GUARANTEED
-
-	[[nodiscard]] virtual Iterator end() noexcept
-		GUARANTEED
-
-	[[nodiscard]] virtual ConstIterator end() const noexcept
-		GUARANTEED
-
-	// Checks if a certain index is contained within the container
-	[[nodiscard]] virtual bool containsAt(const size_t index) const {
-		return index > 0 && index < getSize();
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	[[nodiscard]] TType& bottom() {
+		return _derived().bottom();
+	}
+	// Gets the first element possible, or the 'top' of the container
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	[[nodiscard]] const TType& bottom() const {
+		return _derived().bottom();
 	}
 
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	[[nodiscard]] Iterator begin() noexcept {
+		return _derived().begin();
+	}
+
+	// Allow const access for limited access (like asking people in a queue a question)
+	[[nodiscard]] ConstIterator begin() const noexcept { return _derived().begin(); }
+
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	[[nodiscard]] Iterator end() noexcept {
+		return _derived().end();
+	}
+
+	// Allow const access for limited access (like asking people in a queue a question)
+	[[nodiscard]] ConstIterator end() const noexcept { return _derived().end(); }
+
+	// Checks if a certain index is contained within the container
+	[[nodiscard]] bool containsAt(const size_t index) const  { return _derived().containsAt(index); }
+
 	// Checks if a certain object is contained within the container
-	[[nodiscard]] virtual bool contains(const TType& obj) const
-		GUARANTEED
+	[[nodiscard]] bool contains(const TType& obj) const { return _derived().contains(obj); }
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
-	[[nodiscard]] virtual bool contains(typename TUnfurled<TType>::Type* obj) const
-		GUARANTEED
+	[[nodiscard]] bool contains(typename TUnfurled<TType>::Type* obj) const { return _derived().contains(obj); }
 #endif
 
 	// Find a certain element in the container
-	[[nodiscard]] virtual size_t find(const TType& obj) const
-		GUARANTEED
+	[[nodiscard]] size_t find(const TType& obj) const { return _derived().find(obj); }
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
-	[[nodiscard]] virtual size_t find(typename TUnfurled<TType>::Type* obj) const
-		GUARANTEED
+	[[nodiscard]] size_t find(typename TUnfurled<TType>::Type* obj) const { return _derived().find(obj); }
 #endif
 
 	// Get an element at a specified index
-	// Note: Certain limited containers will ignore index and return top, ex: queue or stack
-	[[nodiscard]] virtual TType& get(size_t index)
-		GUARANTEED
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	[[nodiscard]] TType& get(size_t index) {
+		return _derived().get(index);
+	}
 	// Get an element at a specified index
-	// Note: Certain limited containers will ignore index and return top, ex: queue or stack
-	[[nodiscard]] virtual const TType& get(size_t index) const
-		GUARANTEED
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	[[nodiscard]] const TType& get(size_t index) const {
+		return _derived().get(index);
+	}
 
-	[[nodiscard]] virtual TType& operator[](const size_t index) { return get(index); }
-	[[nodiscard]] virtual const TType& operator[](const size_t index) const { return get(index); }
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	[[nodiscard]] TType& operator[](const size_t index) {
+		return get(index);
+	}
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	[[nodiscard]] const TType& operator[](const size_t index) const {
+		return get(index);
+	}
 
 	// Fills container with n defaulted elements
-	virtual void resize(size_t amt)
-		GUARANTEED
+	void resize(size_t amt) { _derived().resize(amt); }
 
 	// Fills container with TType& elements with size amt
-	virtual void resize(size_t amt, std::function<TType(size_t)> func)
-		GUARANTEED
+	void resize(size_t amt, std::function<TType(size_t)> func) { _derived().resize(amt, func); }
 
 	// Reserves memory for n elements
-	virtual void reserve(size_t amt)
-		NOT_GUARANTEED
+	ENABLE_FUNC_IF(bIsContiguousMemory)
+	void reserve(size_t amt) {
+		_derived().reserve(amt);
+	}
 
 	// Adds a defaulted element to the container
-	virtual TType& push()
-		GUARANTEED
+	TType& push() { return _derived().push(); }
 	// Adds an element to the container, returning the index where it was added
-	virtual size_t push(const TType& obj)
-		GUARANTEED
+	size_t push(const TType& obj) { return _derived().push(obj); }
 	// Adds an element to the container, returning the index where it was added
-	virtual size_t push(TType&& obj)
-		GUARANTEED
+	size_t push(TType&& obj) { return _derived().push(std::move(obj)); }
 	// Inserts an element at a specified index
-	virtual void push(size_t index, const TType& obj)
-		GUARANTEED
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	void push(size_t index, const TType& obj) {
+		_derived().push(index, obj);
+	}
 	// Inserts an element at a specified index
-	virtual void push(size_t index, TType&& obj)
-		GUARANTEED
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	void push(size_t index, TType&& obj) {
+		_derived().push(index, std::move(obj));
+	}
 
 	// Replaces an element at a specified index, and returns the original
-	virtual void replace(size_t index, const TType&)
-		GUARANTEED
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	void replace(size_t index, const TType& obj) {
+		_derived().push(index, obj);
+	}
 	// Replaces an element at a specified index, and returns the original
-	virtual void replace(size_t index, TType&&)
-		GUARANTEED
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	void replace(size_t index, TType&& obj) {
+		_derived().replace(index, std::move(obj));
+	}
 
 	// Removes all elements from the container
-	virtual void clear()
-		GUARANTEED
+	void clear() { _derived().clear(); }
 
 	// Removes the topmost element from the container
-	virtual void pop()
-		GUARANTEED
+	void pop() { _derived().pop(); }
 	// Removes an element at the specified index
-	virtual void popAt(size_t index)
-		GUARANTEED
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	void popAt(size_t index) {
+		_derived().popAt(index);
+	}
 	// Removes a certain object from the container
-	virtual void pop(const TType& obj)
-		GUARANTEED
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	void pop(const TType& obj) {
+		_derived().pop(obj);
+	}
 
 #ifdef USING_SIMPLEPTR
 	// Version of pop that guarantees raw pointer input
-	virtual void pop(typename TUnfurled<TType>::Type* obj)
-		GUARANTEED
+	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	void pop(typename TUnfurled<TType>::Type* obj) { _derived().pop(obj); }
 #endif
 
 	// Moves an object at index from this to container otr
-	// Needs to be same type, but disallow same CONTAINER type so it can be overriden
-	template <typename TOtherContainerType,
-		std::enable_if_t<std::conjunction_v<
-			std::is_convertible<TType, typename TSequenceContainer<TOtherContainerType>::TType>,
-			std::negation<std::is_same<TContainerType, TOtherContainerType>>
-			>, int> = 0
-	>
+	template <typename TOtherContainerType>
 	void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {
-		// Prefer move, but copy if not available
-		auto& obj = get(index);
-		if constexpr (std::is_move_constructible_v<TType>) {
-			otr.push(std::move(obj));
-		} else {
-			otr.push(obj);
-		}
-		popAt(index);
+		static_assert(!bIsLimitedAccess, "Limited Access Type cannot be transferred from");
+		_derived().transfer(otr, index);
 	}
 
-	// Allow virtual override for transfers of same container type
-	virtual void transfer(TSequenceContainer& otr, const size_t index) {
-		// Prefer move, but copy if not available
-		auto& obj = get(index);
-		if constexpr (std::is_move_constructible_v<TType>) {
-			otr.push(std::move(obj));
-		} else {
-			otr.push(obj);
-		}
-		popAt(index);
-	}
-
-	virtual void doFor(const size_t index, const std::function<void(TType&)>& func) {
+	void doFor(const size_t index, const std::function<void(TType&)>& func) {
 		func(get(index));
 	}
 
-	virtual void doFor(const size_t index, const std::function<void(const TType&)>& func) const {
+	void doFor(const size_t index, const std::function<void(const TType&)>& func) const {
 		func(get(index));
 	}
 
-	virtual void doFor(const size_t start, const size_t end, const std::function<void(size_t, TType&)>& func) {
-		for (int i = start; i < end; ++i) {
+	void doFor(const size_t start, const size_t end, const std::function<void(size_t, TType&)>& func) {
+		for (size_t i = start; i < end; ++i) {
 			func(i, get(i));
 		}
 	}
 
-	virtual void doFor(const size_t start, const size_t end, const std::function<void(size_t, const TType&)>& func) const {
-		for (int i = start; i < end; ++i) {
+	void doFor(const size_t start, const size_t end, const std::function<void(size_t, const TType&)>& func) const {
+		for (size_t i = start; i < end; ++i) {
 			func(i, get(i));
 		}
 	}
@@ -370,6 +372,16 @@ struct TSequenceContainer {
 		return inArchive;
 	}
 #endif
+
+public:
+
+	TContainerType& _derived() {
+		return *static_cast<TContainerType*>(this);
+	}
+
+	const TContainerType& _derived() const {
+		return *static_cast<const TContainerType*>(this);
+	}
 };
 
 // Designed to be a container with a key for indexing

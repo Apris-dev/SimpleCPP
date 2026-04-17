@@ -45,3 +45,6 @@ using utf8 = char;
 #endif
 using utf16 = char16_t;
 using utf32 = char32_t;
+
+// Allows you to optionally define whether a function exists or not. Must be constexpr and static
+#define ENABLE_FUNC_IF(cond) template<bool b = cond, std::enable_if_t<b, int> = 0>
