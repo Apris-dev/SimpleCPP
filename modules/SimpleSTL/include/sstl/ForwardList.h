@@ -9,6 +9,10 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 
 	using Super = TSequenceContainer<TForwardList>;
 
+#ifdef USING_SIMPLEPTR
+	using typename Super::TUnfurledType;
+#endif
+
 	TForwardList() = default;
 
 	template <typename TOtherType = TType,
@@ -57,19 +61,19 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 		return m_Container.end();
 	}
 
+	[[nodiscard]] bool isValid(size_t index) const {
+		return index > 0 && index < getSize();
+	}
+
 	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
 	bool contains(const TType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
 
 #ifdef USING_SIMPLEPTR
-	bool contains(typename TUnfurled<TType>::Type* obj) const {
-		if constexpr (sstl::is_managed_v<TType>) {
-			// Will compare pointers, is always comparable
-			return CONTAINS(m_Container, obj, TUnfurled<TType>::get);
-		} else {
-			return contains(*obj);
-		}
+	bool contains(const TFrail<TUnfurledType>& obj) const {
+		// Will compare pointers, is always comparable
+		return CONTAINS(m_Container, obj);
 	}
 #endif
 
@@ -79,13 +83,9 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	size_t find(typename TUnfurled<TType>::Type* obj) const {
-		if constexpr (sstl::is_managed_v<TType>) {
-			// Will compare pointers, is always comparable
-			return DISTANCE(m_Container, obj, TUnfurled<TType>::get);
-		} else {
-			return find(*obj);
-		}
+	size_t find(const TFrail<TUnfurledType>& obj) const {
+		// Will compare pointers, is always comparable
+		return DISTANCE(m_Container, obj);
 	}
 #endif
 
@@ -177,13 +177,9 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	void pop(typename TUnfurled<TType>::Type* obj) {
-		if constexpr (sstl::is_managed_v<TType>) {
-			// Will compare pointers, is always comparable
-			m_Container.erase_after(std::remove(m_Container.before_begin(), m_Container.end(), obj), m_Container.end());
-		} else {
-			pop(*obj);
-		}
+	void pop(const TFrail<TUnfurledType>& obj) {
+		// Will compare pointers, is always comparable
+		m_Container.erase_after(std::remove(m_Container.before_begin(), m_Container.end(), obj), m_Container.end());
 	}
 #endif
 
@@ -203,13 +199,10 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 	void transfer(TSequenceContainer<TForwardList>& list, const size_t index) {
 		auto itr = m_Container.before_begin();
 		std::advance(itr, index);
-		list._derived().m_Container.splice_after(list._derived().m_Container.before_begin(), m_Container, itr);
+		Super::_derived(list).m_Container.splice_after(Super::_derived(list).m_Container.before_begin(), m_Container, itr);
 	}
 
 protected:
-
-	template <typename>
-	friend struct TList;
 
 	std::forward_list<TType> m_Container;
 };

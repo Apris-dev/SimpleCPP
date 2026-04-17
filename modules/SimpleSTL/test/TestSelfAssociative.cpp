@@ -13,7 +13,7 @@
 template <typename TContainerType>
 void containerTest(const std::string& containerName, TSingleAssociativeContainer<TContainerType>& container) {
 
-	using TType = typename TSequenceContainer<TContainerType>::TType;
+	using TType = typename TSingleAssociativeContainer<TContainerType>::TType;
 
 	std::vector<size_t> vec;
 	for (size_t i = 0; i < 10; ++i) {
@@ -45,7 +45,7 @@ void containerTest(const std::string& containerName, TSingleAssociativeContainer
 template <typename TContainerType>
 void transferTest(const std::string& containerName, TSingleAssociativeContainer<TContainerType>& container) {
 
-	using TType = typename TSequenceContainer<TContainerType>::TType;
+	using TType = typename TSingleAssociativeContainer<TContainerType>::TType;
 
 	{
 		std::cout << "Set Transfer Test" << std::endl;

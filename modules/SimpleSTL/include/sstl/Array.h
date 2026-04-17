@@ -9,6 +9,10 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 	using Super = TSequenceContainer<TArray>;
 
+#ifdef USING_SIMPLEPTR
+	using typename Super::TUnfurledType;
+#endif
+	
 	_CONSTEXPR20 TArray() {
 		m_IsPopulated.fill(false);
 	}
@@ -89,7 +93,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return m_Container.end();
 	}
 
-	[[nodiscard]] bool containsAt(size_t index) const {
+	[[nodiscard]] bool isValid(size_t index) const {
 		return m_IsPopulated[index];
 	}
 
@@ -99,13 +103,9 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	bool contains(typename TUnfurled<TType>::Type* obj) const {
-		if constexpr (sstl::is_managed_v<TType>) {
-			// Will compare pointers, is always comparable
-			return CONTAINS(m_Container, obj, TUnfurled<TType>::get);
-		} else {
-			return contains(*obj);
-		}
+	bool contains(const TFrail<TUnfurledType>& obj) const {
+		// Will compare pointers, is always comparable
+		return CONTAINS(m_Container, obj);
 	}
 #endif
 
@@ -115,13 +115,9 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	size_t find(typename TUnfurled<TType>::Type* obj) const {
-		if constexpr (sstl::is_managed_v<TType>) {
-			// Will compare pointers, is always comparable
-			return DISTANCE(m_Container, obj, TUnfurled<TType>::get);
-		} else {
-			return find(*obj);
-		}
+	size_t find(const TFrail<TUnfurledType>& obj) const {
+		// Will compare pointers, is always comparable
+		return DISTANCE(m_Container, obj);
 	}
 #endif
 
@@ -240,7 +236,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	void pop(typename TUnfurled<TType>::Type* obj) {
+	void pop(const TFrail<TUnfurledType>& obj) {
 		if constexpr (sstl::is_managed_v<TType>) {
 			for (size_t index = 0; index < getSize(); ++index) {
 				// Will compare pointers, is always comparable

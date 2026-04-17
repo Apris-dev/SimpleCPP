@@ -4,6 +4,11 @@
 #include "sptr/Weak.h"
 #include "sptr/Unique.h"
 
+namespace sstl {
+	template <typename TType>
+	struct is_managed;
+}
+
 template <typename TType>
 struct TFrail {
 
@@ -164,39 +169,66 @@ noexcept {
 		return m_ptr != nullptr;
 	}
 
-	friend bool operator<(const TFrail& fst, const TFrail& snd) noexcept {
-		return fst.m_ptr < snd.m_ptr;
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	friend bool operator<(const TFrail& fst, const TOtherType& snd) noexcept {
+		return fst.get() < snd.get();
 	}
 
-	friend bool operator<=(const TFrail& fst, const TFrail& snd) noexcept {
-		return fst.m_ptr <= snd.m_ptr;
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	friend bool operator<=(const TFrail& fst, const TOtherType& snd) noexcept {
+		return fst.get() <= snd.get();
 	}
 
-	friend bool operator>(const TFrail& fst, const TFrail& snd) noexcept {
-		return fst.m_ptr > snd.m_ptr;
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	friend bool operator>(const TFrail& fst, const TOtherType& snd) noexcept {
+		return fst.get() > snd.get();
 	}
 
-	friend bool operator>=(const TFrail& fst, const TFrail& snd) noexcept {
-		return fst.m_ptr >= snd.m_ptr;
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	friend bool operator>=(const TFrail& fst, const TOtherType& snd) noexcept {
+		return fst.get() >= snd.get();
 	}
 
-	// TODO: c++26 owner_equal c++26 owner_hash
-	friend bool operator==(const TFrail& fst, const TFrail& snd) noexcept {
-		return fst.m_ptr == snd.m_ptr;
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	friend bool operator==(const TFrail& fst, const TOtherType& snd) noexcept {
+		return fst.get() == snd.get();
 	}
 
 	// Compare raw pointer
 	friend bool operator==(const TFrail& fst, const void* snd) noexcept {
-		return fst.m_ptr == snd;
+		return fst.get() == snd;
 	}
 
-	friend bool operator!=(const TFrail& fst, const TFrail& snd) noexcept {
-		return fst.m_ptr != snd.m_ptr;
+	// Compare raw pointer
+	friend bool operator==(const void* fst, const TFrail& snd) noexcept {
+		return snd == fst;
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	friend bool operator!=(const TFrail& fst, const TOtherType& snd) noexcept {
+		return fst.get() != snd.get();
 	}
 
 	// Compare raw pointer
 	friend bool operator!=(const TFrail& fst, const void* snd) noexcept {
-		return fst.m_ptr != snd;
+		return fst.get() != snd;
+	}
+
+	// Compare raw pointer
+	friend bool operator!=(const void* fst, const TFrail& snd) noexcept {
+		return snd != fst;
 	}
 
 #ifdef USING_SIMPLEARCHIVE
@@ -214,10 +246,28 @@ noexcept {
 private:
 
 	template <typename>
+	friend struct TUnique;
+
+	template <typename>
+	friend struct TShared;
+
+	template <typename>
+	friend struct TWeak;
+
+	template <typename>
 	friend struct TFrail;
 
 	TType* m_ptr = nullptr;
 };
+
+template <typename TType>
+TFrail(TUnique<TType>) -> TFrail<typename sstl::EnforceConvertible<TType>::Type>;
+
+template <typename TType>
+TFrail(TShared<TType>) -> TFrail<typename sstl::EnforceConvertible<TType>::Type>;
+
+template <typename TType>
+TFrail(TWeak<TType>) -> TFrail<typename sstl::EnforceConvertible<TType>::Type>;
 
 #ifndef USING_SIMPLEARCHIVE
 template<typename TType>

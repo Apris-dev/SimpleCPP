@@ -8,6 +8,11 @@
 
 #include "sptr/Common.h"
 
+namespace sstl {
+	template <typename TType>
+	struct is_managed;
+}
+
 template <typename>
 struct TWeak;
 
@@ -192,38 +197,66 @@ struct TShared {
 		return static_cast<bool>(m_ptr);
 	}
 
-	_CONSTEXPR23 friend bool operator<(const TShared& fst, const TShared& snd) noexcept {
-		return fst.m_ptr < snd.m_ptr;
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	_CONSTEXPR23 friend bool operator<(const TShared& fst, const TOtherType& snd) noexcept {
+		return fst.get() < snd.get();
 	}
 
-	_CONSTEXPR23 friend bool operator<=(const TShared& fst, const TShared& snd) noexcept {
-		return fst.m_ptr <= snd.m_ptr;
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	_CONSTEXPR23 friend bool operator<=(const TShared& fst, const TOtherType& snd) noexcept {
+		return fst.get() <= snd.get();
 	}
 
-	_CONSTEXPR23 friend bool operator>(const TShared& fst, const TShared& snd) noexcept {
-		return fst.m_ptr > snd.m_ptr;
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	_CONSTEXPR23 friend bool operator>(const TShared& fst, const TOtherType& snd) noexcept {
+		return fst.get() > snd.get();
 	}
 
-	_CONSTEXPR23 friend bool operator>=(const TShared& fst, const TShared& snd) noexcept {
-		return fst.m_ptr >= snd.m_ptr;
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	_CONSTEXPR23 friend bool operator>=(const TShared& fst, const TOtherType& snd) noexcept {
+		return fst.get() >= snd.get();
 	}
 
-	_CONSTEXPR23 friend bool operator==(const TShared& fst, const TShared& snd) noexcept {
-		return fst.m_ptr == snd.m_ptr;
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	_CONSTEXPR23 friend bool operator==(const TShared& fst, const TOtherType& snd) noexcept {
+		return fst.get() == snd.get();
 	}
 
 	// Compare raw pointer
 	_CONSTEXPR23 friend bool operator==(const TShared& fst, const void* snd) noexcept {
-		return fst.m_ptr.get() == snd;
+		return fst.get() == snd;
 	}
 
-	_CONSTEXPR23 friend bool operator!=(const TShared& fst, const TShared& snd) noexcept {
-		return fst.m_ptr != snd.m_ptr;
+	// Compare raw pointer
+	_CONSTEXPR23 friend bool operator==(const void* fst, const TShared& snd) noexcept {
+		return snd == fst;
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	_CONSTEXPR23 friend bool operator!=(const TShared& fst, const TOtherType& snd) noexcept {
+		return fst.get() != snd.get();
 	}
 
 	// Compare raw pointer
 	_CONSTEXPR23 friend bool operator!=(const TShared& fst, const void* snd) noexcept {
-		return fst.m_ptr.get() != snd;
+		return fst.get() != snd;
+	}
+
+	// Compare raw pointer
+	_CONSTEXPR23 friend bool operator!=(const void* fst, const TShared& snd) noexcept {
+		return snd != fst;
 	}
 
 #ifdef USING_SIMPLEARCHIVE
@@ -239,6 +272,9 @@ struct TShared {
 #endif
 
 private:
+
+	template <typename>
+	friend struct TUnique;
 
 	template <typename>
 	friend struct TShared;

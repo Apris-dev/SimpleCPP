@@ -9,6 +9,10 @@ struct TDeque : TSequenceContainer<TDeque<TType>> {
 
 	using Super = TSequenceContainer<TDeque>;
 
+#ifdef USING_SIMPLEPTR
+	using typename Super::TUnfurledType;
+#endif
+
 	TDeque() = default;
 
 	template <typename TOtherType = TType,
@@ -65,19 +69,19 @@ struct TDeque : TSequenceContainer<TDeque<TType>> {
 		return m_Container.end();
 	}
 
+	[[nodiscard]] bool isValid(size_t index) const {
+		return index > 0 && index < getSize();
+	}
+
 	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
 	bool contains(const TType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
 
 #ifdef USING_SIMPLEPTR
-	bool contains(typename TUnfurled<TType>::Type* obj) const {
-		if constexpr (sstl::is_managed_v<TType>) {
-			// Will compare pointers, is always comparable
-			return CONTAINS(m_Container, obj, TUnfurled<TType>::get);
-		} else {
-			return contains(*obj);
-		}
+	bool contains(const TFrail<TUnfurledType>& obj) const {
+		// Will compare pointers, is always comparable
+		return CONTAINS(m_Container, obj);
 	}
 #endif
 
@@ -87,13 +91,9 @@ struct TDeque : TSequenceContainer<TDeque<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	size_t find(typename TUnfurled<TType>::Type* obj) const {
-		if constexpr (sstl::is_managed_v<TType>) {
-			// Will compare pointers, is always comparable
-			return DISTANCE(m_Container, obj, TUnfurled<TType>::get);
-		} else {
-			return find(*obj);
-		}
+	size_t find(const TFrail<TUnfurledType>& obj) const {
+		// Will compare pointers, is always comparable
+		return DISTANCE(m_Container, obj);
 	}
 #endif
 
@@ -178,13 +178,9 @@ struct TDeque : TSequenceContainer<TDeque<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	void pop(typename TUnfurled<TType>::Type* obj) {
-		if constexpr (sstl::is_managed_v<TType>) {
-			// Will compare pointers, is always comparable
-			ERASE(m_Container, obj, TUnfurled<TType>::get);
-		} else {
-			pop(*obj);
-		}
+	void pop(const TFrail<TUnfurledType>& obj) {
+		// Will compare pointers, is always comparable
+		ERASE(m_Container, obj);
 	}
 #endif
 

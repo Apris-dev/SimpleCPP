@@ -107,15 +107,15 @@ void transferTest(const std::string& containerName, TAssociativeContainer<TConta
 
 		std::cout << "Pre Transfer" << std::endl;
 		std::cout << "from:" << std::endl;
-		from.forEach([](const TPair<MapEnum, const TType&>& obb) {
+		for (const auto& obb : from) {
 			std::cout << "Key: " << enumToString(obb.first) << " ";
 			sstl::getUnfurled(obb.second)->print();
-		});
+		}
 		std::cout << "to:" << std::endl;
-		container.forEach([](const TPair<MapEnum, const TType&>& obb) {
+		for (const auto& obb : container) {
 			std::cout << "Key: " << enumToString(obb.first) << " ";
 			sstl::getUnfurled(obb.second)->print();
-		});
+		}
 
 		assert(from.getSize() == 1);
 
@@ -123,15 +123,15 @@ void transferTest(const std::string& containerName, TAssociativeContainer<TConta
 
 		std::cout << "Post Transfer" << std::endl;
 		std::cout << "from:" << std::endl;
-		from.forEach([](const TPair<MapEnum, const TType&>& obb) {
+		for (const auto& obb : from) {
 			std::cout << "Key: " << enumToString(obb.first) << " ";
 			sstl::getUnfurled(obb.second)->print();
-		});
+		}
 		std::cout << "to:" << std::endl;
-		container.forEach([](const TPair<MapEnum, const TType&>& obb) {
+		for (const auto& obb : container) {
 			std::cout << "Key: " << enumToString(obb.first) << " ";
 			sstl::getUnfurled(obb.second)->print();
-		});
+		}
 		std::cout << std::endl;
 
 		assert(container.getSize() == 1);
@@ -151,9 +151,9 @@ void transferTest(const std::string& containerName, TAssociativeContainer<TConta
 	SINGLE_TEST(x<MapEnum, TUnique<Parent>>) \
 	SINGLE_TEST(x<MapEnum, TUnique<Abstract>>) \
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Constructor Test" << std::endl; } \
-	{ x container{TPair{MapEnum::NONE, 0}, TPair{MapEnum::ONE, 5}, TPair{MapEnum::TWO, 10}}; container.forEach([](TPair<MapEnum, const int&> pair) { std::cout << pair.second << std::endl; }); } \
+	{ x container{TPair{MapEnum::NONE, 0}, TPair{MapEnum::ONE, 5}, TPair{MapEnum::TWO, 10}}; for (const auto& pair : container) { std::cout << pair.second << std::endl; } } \
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Unique Constructor Test" << std::endl; } \
-	{ x container{TPair{MapEnum::NONE, TUnique{0}}, TPair{MapEnum::ONE, TUnique{5}}, TPair{MapEnum::TWO, TUnique{10}}}; container.forEach([](TPair<MapEnum, const TUnique<int>&> pair) { std::cout << *pair.second.get() << std::endl; }); } \
+	{ x container{TPair{MapEnum::NONE, TUnique{0}}, TPair{MapEnum::ONE, TUnique{5}}, TPair{MapEnum::TWO, TUnique{10}}}; for (const auto& pair : container) { std::cout << *pair.second.get() << std::endl; } } \
 
 
 int main() {

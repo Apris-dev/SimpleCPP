@@ -9,9 +9,13 @@
 #endif
 
 template <typename TKeyType, typename TValueType>
-struct TMap : TAssociativeContainer<std::unordered_map<TKeyType, TValueType, TContainerHasher<TKeyType>>> {
+struct TMap : TAssociativeContainer<TMap<TKeyType, TValueType>> {
 
-	using Super = TAssociativeContainer<std::unordered_map<TKeyType, TValueType, TContainerHasher<TKeyType>>>;
+	using Super = TAssociativeContainer<TMap>;
+
+#ifdef USING_SIMPLEPTR
+	using typename Super::TUnfurledValueType;
+#endif
 
 	TMap() = default;
 
@@ -33,53 +37,84 @@ struct TMap : TAssociativeContainer<std::unordered_map<TKeyType, TValueType, TCo
 
 	TMap(const std::unordered_map<TKeyType, TValueType>& otr): m_Container(otr) {}
 
-	[[nodiscard]] virtual size_t getSize() const override {
+	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
 	}
 
-	[[nodiscard]] virtual bool isEmpty() const override {
+	[[nodiscard]] bool isEmpty() const {
 		return m_Container.empty();
 	}
 
-	[[nodiscard]] virtual TPair<TKeyType, const TValueType&> top() const override {
+	[[nodiscard]] TPair<TKeyType, const TValueType&> top() const {
 		return TPair<TKeyType, const TValueType&>{*m_Container.begin()};
 	}
 
-	[[nodiscard]] virtual TPair<TKeyType, const TValueType&> bottom() const override {
+	[[nodiscard]] TPair<TKeyType, const TValueType&> bottom() const {
 		auto itr = m_Container.end();
 		std::advance(itr, -1);
 		return TPair<TKeyType, const TValueType&>{*itr};
 	}
 
-	[[nodiscard]] virtual typename Super::Iterator begin() noexcept override {
+	[[nodiscard]] typename Super::Iterator begin() noexcept {
 		return m_Container.begin();
 	}
 
-	[[nodiscard]] virtual typename Super::ConstIterator begin() const noexcept override {
+	[[nodiscard]] typename Super::ConstIterator begin() const noexcept {
 		return m_Container.begin();
 	}
 
-	[[nodiscard]] virtual typename Super::Iterator end() noexcept override {
+	[[nodiscard]] typename Super::Iterator end() noexcept {
 		return m_Container.end();
 	}
 
-	[[nodiscard]] virtual typename Super::ConstIterator end() const noexcept override {
+	[[nodiscard]] typename Super::ConstIterator end() const noexcept {
 		return m_Container.end();
 	}
 
-	virtual bool contains(const TKeyType& key) const override {
+	bool isValid(const TKeyType& key) const {
 		return ASSOCIATIVE_CONTAINS(m_Container, key);
 	}
 
-	virtual TValueType& get(const TKeyType& key) override {
+	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TValueType>)
+	bool contains(const TValueType& obj) const {
+		return std::find_if(m_Container.cbegin(), m_Container.cend(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
+			return pair.second == obj;
+		}) != m_Container.cend();
+	}
+
+#ifdef USING_SIMPLEPTR
+	bool contains(const TFrail<TUnfurledValueType>& obj) const {
+		// Will compare pointers, is always comparable
+		return std::find_if(m_Container.cbegin(), m_Container.cend(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
+			return pair.second == obj;
+		}) != m_Container.cend();
+	}
+#endif
+
+	[[nodiscard]] TKeyType find(const TValueType& obj) const {
+		return std::find_if(m_Container.cbegin(), m_Container.cend(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
+			return pair.second == obj;
+		})->first;
+	}
+
+#ifdef USING_SIMPLEPTR
+	[[nodiscard]] TKeyType find(const TFrail<TUnfurledValueType>& obj) const {
+		// Will compare pointers, is always comparable
+		return std::find_if(m_Container.cbegin(), m_Container.cend(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
+			return pair.second == obj;
+		})->first;
+	}
+#endif
+
+	TValueType& get(const TKeyType& key) {
 		return m_Container.at(key);
 	}
 
-	virtual const TValueType& get(const TKeyType& key) const override {
+	const TValueType& get(const TKeyType& key) const {
 		return m_Container.at(key);
 	}
 
-	virtual void resize(const size_t amt, std::function<TPair<TKeyType, TValueType>()> func) override {
+	void resize(const size_t amt, std::function<TPair<TKeyType, TValueType>()> func) {
 		m_Container.reserve(amt);
 		for (size_t i = getSize(); i < amt; ++i) {
 			TPair<TKeyType, TValueType> pair = func();
@@ -87,105 +122,92 @@ struct TMap : TAssociativeContainer<std::unordered_map<TKeyType, TValueType, TCo
 		}
 	}
 
-	virtual void reserve(size_t amt) override {
+	void reserve(size_t amt) {
 		m_Container.reserve(amt);
 	}
 
-	virtual TPair<TKeyType, const TValueType&> push() override {
-		if constexpr (std::is_default_constructible_v<TKeyType> && std::is_default_constructible_v<TValueType>) {
-			m_Container.emplace();
-			return top();
-		} else {
-			throw std::runtime_error("Type is not default constructible!");
-		}
+	ENABLE_FUNC_IF(std::is_default_constructible_v<TKeyType> && std::is_default_constructible_v<TValueType>)
+	TPair<TKeyType, const TValueType&> push() {
+		m_Container.emplace();
+		return top();
 	}
 
-	virtual TValueType& push(const TKeyType& key) override {
-		if constexpr (std::is_default_constructible_v<TValueType>) {
-			push(TPair<TKeyType, TValueType>{key, {}});
-			return get(key);
-		} else {
-			throw std::runtime_error("Type is not default constructible!");
-		}
+	ENABLE_FUNC_IF(std::is_default_constructible_v<TValueType>)
+	TValueType& push(const TKeyType& key) {
+		push(TPair<TKeyType, TValueType>{key, {}});
+		return get(key);
 	}
 
-	virtual TValueType& push(const TKeyType& key, const TValueType& value) override {
-		if constexpr (std::is_copy_constructible_v<TValueType>) {
-			push(TPair<TKeyType, TValueType>{key, value});
-			return get(key);
-		} else {
-			throw std::runtime_error("Type is not copyable!");
-		}
+	ENABLE_FUNC_IF(std::is_copy_constructible_v<TValueType>)
+	TValueType& push(const TKeyType& key, const TValueType& value) {
+		push(TPair<TKeyType, TValueType>{key, value});
+		return get(key);
 	}
 
-	virtual TValueType& push(const TKeyType& key, TValueType&& value) override {
-		if constexpr (std::is_move_constructible_v<TValueType>) {
-			push(TPair<TKeyType, TValueType>{key, std::move(value)});
-			return get(key);
-		} else {
-			throw std::runtime_error("Type is not moveable!");
-		}
+	ENABLE_FUNC_IF(std::is_move_constructible_v<TValueType>)
+	TValueType& push(const TKeyType& key, TValueType&& value) {
+		push(TPair<TKeyType, TValueType>{key, std::move(value)});
+		return get(key);
 	}
 
-	virtual void push(const TPair<TKeyType, TValueType>& pair) override {
-		if constexpr (std::is_copy_constructible_v<TValueType>) {
-			m_Container.emplace(pair.first, pair.second);
-		} else {
-			throw std::runtime_error("Type is not copyable!");
-		}
+	ENABLE_FUNC_IF(std::is_copy_constructible_v<TValueType>)
+	void push(const TPair<TKeyType, TValueType>& pair) {
+		m_Container.emplace(pair.first, pair.second);
 	}
 
-	virtual void push(TPair<TKeyType, TValueType>&& pair) override {
-		if constexpr (std::is_move_constructible_v<TValueType>) {
-			m_Container.emplace(std::move(pair.first), std::move(pair.second));
-		} else {
-			throw std::runtime_error("Type is not moveable!");
-		}
+	ENABLE_FUNC_IF(std::is_move_constructible_v<TValueType>)
+	void push(TPair<TKeyType, TValueType>&& pair) {
+		m_Container.emplace(std::move(pair.first), std::move(pair.second));
 	}
 
-	virtual void replace(const TKeyType& key, const TValueType& obj) override {
-		if constexpr (std::is_copy_constructible_v<TValueType>) {
-			pop(key);
-			push(TPair<TKeyType, TValueType>{key, obj});
-		} else {
-			throw std::runtime_error("Type is not copyable!");
-		}
+	ENABLE_FUNC_IF(std::is_copy_constructible_v<TValueType>)
+	void replace(const TKeyType& key, const TValueType& obj) {
+		pop(key);
+		push(TPair<TKeyType, TValueType>{key, obj});
 	}
 
-	virtual void replace(const TKeyType& key, TValueType&& obj) override {
-		if constexpr (std::is_move_constructible_v<TValueType>) {
-			pop(key);
-			push(TPair<TKeyType, TValueType>{key, std::move(obj)});
-		} else {
-			throw std::runtime_error("Type is not moveable!");
-		}
+	ENABLE_FUNC_IF(std::is_move_constructible_v<TValueType>)
+	void replace(const TKeyType& key, TValueType&& obj) {
+		pop(key);
+		push(TPair<TKeyType, TValueType>{key, std::move(obj)});
 	}
 
-	virtual void clear() override {
+	void clear() {
 		m_Container.clear();
 	}
 
-	virtual void pop() override {
+	void pop() {
 		pop(m_Container.begin()->first);
 	}
 
-	virtual void pop(const TKeyType& key) override {
+	void pop(const TKeyType& key) {
 		m_Container.erase(key);
 	}
 
-	virtual typename std::unordered_map<TKeyType, TValueType, TContainerHasher<TKeyType>>::node_type extract(const TKeyType& key) override {
-		return m_Container.extract(m_Container.find(key));
-	}
-
-	virtual void forEach(const std::function<void(TPair<TKeyType, const TValueType&>)>& func) const override {
-		for (auto itr = m_Container.begin(); itr != m_Container.end(); ++itr) {
-			func(TPair<TKeyType, const TValueType&>{itr->first, itr->second});
+	template <typename TOtherContainerType>
+	void transfer(TAssociativeContainer<TOtherContainerType>& otr, const TKeyType& key) {
+		auto itr = m_Container.extract(m_Container.find(key));
+		// Prefer move, but copy if not available
+		if constexpr (std::is_move_constructible_v<TValueType>) {
+			otr.push(itr.key(), std::move(itr.mapped()));
+		} else {
+			otr.push(itr.key(), itr.mapped());
 		}
 	}
 
 protected:
 
 	std::unordered_map<TKeyType, TValueType, TContainerHasher<TKeyType>> m_Container;
+};
+
+template <typename TKeyType, typename TValueType>
+struct TContainerTraits<TMap<TKeyType, TValueType>> {
+	using KeyType = TKeyType;
+	using ValueType = TValueType;
+	using ContainerType = std::unordered_map<TKeyType, TValueType, TContainerHasher<TKeyType>>;
+	using Iterator = typename ContainerType::iterator;
+	using ConstIterator = typename ContainerType::const_iterator;
+	constexpr static bool bHasHashing = true;
 };
 
 template <typename TKeyType, typename TValueType>

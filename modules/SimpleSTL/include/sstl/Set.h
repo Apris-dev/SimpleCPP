@@ -5,9 +5,13 @@
 #include "sutil/InitializerList.h"
 
 template <typename TType>
-struct TSet : TSingleAssociativeContainer<std::unordered_set<TType, TContainerHasher<TType>>> {
+struct TSet : TSingleAssociativeContainer<TSet<TType>> {
 
-	using Super = TSingleAssociativeContainer<std::unordered_set<TType, TContainerHasher<TType>>>;
+	using Super = TSingleAssociativeContainer<TSet>;
+
+#ifdef USING_SIMPLEPTR
+	using typename Super::TUnfurledType;
+#endif
 
 	TSet() = default;
 
@@ -26,150 +30,139 @@ struct TSet : TSingleAssociativeContainer<std::unordered_set<TType, TContainerHa
 
 	TSet(const std::unordered_set<TType>& otr): m_Container(otr) {}
 
-	[[nodiscard]] virtual size_t getSize() const override {
+	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
 	}
 
-	[[nodiscard]] virtual bool isEmpty() const override {
+	[[nodiscard]] bool isEmpty() const {
 		return m_Container.empty();
 	}
 
-	[[nodiscard]] virtual const TType& top() const override {
+	[[nodiscard]] const TType& top() const {
 		return *m_Container.begin();
 	}
 
-	[[nodiscard]] virtual const TType& bottom() const override {
+	[[nodiscard]] const TType& bottom() const {
 		auto itr = m_Container.end();
 		std::advance(itr, -1);
 		return *itr;
 	}
 
-	[[nodiscard]] virtual typename Super::Iterator begin() noexcept override {
+	[[nodiscard]] typename Super::Iterator begin() noexcept {
 		return m_Container.begin();
 	}
 
-	[[nodiscard]] virtual typename Super::ConstIterator begin() const noexcept override {
+	[[nodiscard]] typename Super::ConstIterator begin() const noexcept {
 		return m_Container.begin();
 	}
 
-	[[nodiscard]] virtual typename Super::Iterator end() noexcept override {
+	[[nodiscard]] typename Super::Iterator end() noexcept {
 		return m_Container.end();
 	}
 
-	[[nodiscard]] virtual typename Super::ConstIterator end() const noexcept override {
+	[[nodiscard]] typename Super::ConstIterator end() const noexcept {
 		return m_Container.end();
 	}
 
-	virtual bool contains(const TType& obj) const override {
+	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
+	bool contains(const TType& obj) const {
 		return ASSOCIATIVE_CONTAINS(m_Container, obj);
 	}
 
 #ifdef USING_SIMPLEPTR
-	virtual bool contains(typename TUnfurled<TType>::Type* obj) const override {
-		if constexpr (sstl::is_managed_v<TType>) {
-			return CONTAINS(m_Container, obj, TUnfurled<TType>::get);
-		} else {
-			return contains(*obj);
-		}
+	bool contains(const TFrail<TUnfurledType>& obj) const {
+		return CONTAINS(m_Container, obj);
 	}
 #endif
 
-	virtual void resize(const size_t amt) override {
-		if constexpr (std::is_default_constructible_v<TType>) {
-			for (size_t i = getSize(); i < amt; ++i) {
-				m_Container.emplace();
-			}
-		} else {
-			throw std::runtime_error("Type is not default constructible!");
+	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
+	void resize(const size_t amt) {
+		for (size_t i = getSize(); i < amt; ++i) {
+			m_Container.emplace();
 		}
 	}
 
-	virtual void resize(const size_t amt, std::function<TType()> func) override {
+	void resize(const size_t amt, std::function<TType()> func) {
 		for (size_t i = getSize(); i < amt; ++i) {
 			m_Container.emplace(std::forward<TType>(func()));
 		}
 	}
 
-	virtual void reserve(const size_t amt) override {
+	void reserve(const size_t amt) {
 		m_Container.reserve(amt);
 	}
 
-	virtual const TType& push() override {
-		if constexpr (std::is_default_constructible_v<TType>) {
-			m_Container.emplace();
-			return top();
-		} else {
-			throw std::runtime_error("Type is not default constructible!");
-		}
+	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
+	const TType& push() {
+		m_Container.emplace();
+		return top();
 	}
 
-	virtual void push(const TType& obj) override {
-		if constexpr (std::is_copy_constructible_v<TType>) {
-			m_Container.emplace(obj);
-		} else {
-			throw std::runtime_error("Type is not copyable!");
-		}
+	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
+	void push(const TType& obj) {
+		m_Container.emplace(obj);
 	}
 
-	virtual void push(TType&& obj) override {
-		if constexpr (std::is_move_constructible_v<TType>) {
-			m_Container.emplace(std::move(obj));
-		} else {
-			throw std::runtime_error("Type is not moveable!");
-		}
+	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
+	void push(TType&& obj) {
+		m_Container.emplace(std::move(obj));
 	}
 
-	virtual void replace(const TType& tgt, const TType& obj) override {
-		if constexpr (std::is_copy_constructible_v<TType>) {
-			// Since this container is unordered, replacing doesn't need to set at the same index
-			pop(tgt);
-			m_Container.insert(obj);
-		} else {
-			throw std::runtime_error("Type is not copyable!");
-		}
+	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
+	void replace(const TType& tgt, const TType& obj) {
+		// Since this container is unordered, replacing doesn't need to set at the same index
+		pop(tgt);
+		m_Container.insert(obj);
 	}
 
-	virtual void replace(const TType& tgt, TType&& obj) override {
-		if constexpr (std::is_move_constructible_v<TType>) {// Since this container is unordered, replacing doesn't need to set at the same index
-			pop(tgt);
-			m_Container.insert(std::move(obj));
-		} else {
-			throw std::runtime_error("Type is not moveable!");
-		}
+	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
+	void replace(const TType& tgt, TType&& obj) {
+		pop(tgt);
+		m_Container.insert(std::move(obj));
 	}
 
-	virtual void clear() override {
+	void clear() {
 		m_Container.clear();
 	}
 
-	virtual void pop() override {
+	void pop() {
 		m_Container.erase(m_Container.begin());
 	}
 
-	virtual void pop(const TType& obj) override {
+	void pop(const TType& obj) {
 		m_Container.erase(obj);
 	}
 
 #ifdef USING_SIMPLEPTR
-	virtual void pop(typename TUnfurled<TType>::Type* obj) override {
-		if constexpr (sstl::is_managed_v<TType>) {
-			ERASE(m_Container, obj, TUnfurled<TType>::get);
-		} else {
-			pop(*obj);
-		}
+	void pop(const TFrail<TUnfurledType>& obj) {
+		ERASE(m_Container, obj);
 	}
 #endif
 
-	virtual typename std::unordered_set<TType, TContainerHasher<TType>>::node_type extract(TType& obj) override {
-		return m_Container.extract(m_Container.find(obj));
+	// Moves an object from this to container otr
+	template <typename TOtherContainerType>
+	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, TType& obj) {
+		if (!this->contains(obj)) return;
+		auto itr = m_Container.extract(m_Container.find(obj));
+		// Prefer move, but copy if not available
+		if constexpr (std::is_move_constructible_v<TType>) {
+			otr.push(std::move(itr.value()));
+		} else {
+			otr.push(itr.value());
+		}
 	}
 
 #ifdef USING_SIMPLEPTR
-	virtual typename std::unordered_set<TType, TContainerHasher<TType>>::node_type extract(typename TUnfurled<TType>::Type* obj) override {
-		if constexpr (sstl::is_managed_v<TType>) {
-			return m_Container.extract(FIND(m_Container, obj, TUnfurled<TType>::get));
+	// Version of transfer that guarantees raw pointer input
+	template <typename TOtherContainerType>
+	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, const TFrail<TUnfurledType>& obj) {
+		if (!this->contains(obj)) return;
+		auto itr = m_Container.extract(FIND(m_Container, obj));
+		// Prefer move, but copy if not available
+		if constexpr (std::is_move_constructible_v<TType>) {
+			otr.push(std::move(itr.value()));
 		} else {
-			return extract(*obj);
+			otr.push(itr.value());
 		}
 	}
 #endif
@@ -177,6 +170,15 @@ struct TSet : TSingleAssociativeContainer<std::unordered_set<TType, TContainerHa
 protected:
 
 	std::unordered_set<TType, TContainerHasher<TType>> m_Container;
+};
+
+template <typename TType>
+struct TContainerTraits<TSet<TType>> {
+	using Type = TType;
+	using ContainerType = std::unordered_set<TType, TContainerHasher<TType>>;
+	using Iterator = typename ContainerType::iterator;
+	using ConstIterator = typename ContainerType::const_iterator;
+	constexpr static bool bHasHashing = true;
 };
 
 template <typename TType, typename... TArgs>

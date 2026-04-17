@@ -8,6 +8,10 @@ struct TStack : TSequenceContainer<TStack<TType>> {
 
 	using Super = TSequenceContainer<TStack>;
 
+#ifdef USING_SIMPLEPTR
+	using typename Super::TUnfurledType;
+#endif
+	
 	TStack() = default;
 
 	template <typename TOtherType = TType,
@@ -44,19 +48,19 @@ struct TStack : TSequenceContainer<TStack<TType>> {
 
 	[[nodiscard]] typename Super::ConstIterator end() const noexcept { return m_Container.end(); }
 
+	[[nodiscard]] bool isValid(size_t index) const {
+		return index > 0 && index < getSize();
+	}
+
 	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
 	bool contains(const TType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
 
 #ifdef USING_SIMPLEPTR
-	bool contains(typename TUnfurled<TType>::Type* obj) const {
-		if constexpr (sstl::is_managed_v<TType>) {
-			// Will compare pointers, is always comparable
-			return CONTAINS(m_Container, obj, TUnfurled<TType>::get);
-		} else {
-			return contains(*obj);
-		}
+	bool contains(const TFrail<TUnfurledType>& obj) const {
+		// Will compare pointers, is always comparable
+		return CONTAINS(m_Container, obj);
 	}
 #endif
 
@@ -66,13 +70,9 @@ struct TStack : TSequenceContainer<TStack<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	size_t find(typename TUnfurled<TType>::Type* obj) const {
-		if constexpr (sstl::is_managed_v<TType>) {
-			// Will compare pointers, is always comparable
-			return DISTANCE(m_Container, obj, TUnfurled<TType>::get);
-		} else {
-			return find(*obj);
-		}
+	size_t find(const TFrail<TUnfurledType>& obj) const {
+		// Will compare pointers, is always comparable
+		return DISTANCE(m_Container, obj);
 	}
 #endif
 

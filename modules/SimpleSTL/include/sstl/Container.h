@@ -183,7 +183,9 @@ struct TSequenceContainer {
 	constexpr static bool bIsContiguousMemory = Traits::bIsContiguousMemory;
 	constexpr static bool bIsLimitedAccess = Traits::bIsLimitedAccess;
 
-	//virtual ~TSequenceContainer() = default;
+#ifdef USING_SIMPLEPTR
+	using TUnfurledType = typename TUnfurled<TType>::Type;
+#endif
 
 	// Returns the size of the container
 	[[nodiscard]] size_t getSize() const { return _derived().getSize(); }
@@ -225,14 +227,14 @@ struct TSequenceContainer {
 	[[nodiscard]] ConstIterator end() const noexcept { return _derived().end(); }
 
 	// Checks if a certain index is contained within the container
-	[[nodiscard]] bool containsAt(const size_t index) const  { return _derived().containsAt(index); }
+	[[nodiscard]] bool isValid(const size_t index) const  { return _derived().isValid(index); }
 
 	// Checks if a certain object is contained within the container
 	[[nodiscard]] bool contains(const TType& obj) const { return _derived().contains(obj); }
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
-	[[nodiscard]] bool contains(typename TUnfurled<TType>::Type* obj) const { return _derived().contains(obj); }
+	[[nodiscard]] bool contains(const TFrail<TUnfurledType>& obj) const { return _derived().contains(obj); }
 #endif
 
 	// Find a certain element in the container
@@ -240,7 +242,7 @@ struct TSequenceContainer {
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
-	[[nodiscard]] size_t find(typename TUnfurled<TType>::Type* obj) const { return _derived().find(obj); }
+	[[nodiscard]] size_t find(const TFrail<TUnfurledType>& obj) const { return _derived().find(obj); }
 #endif
 
 	// Get an element at a specified index
@@ -322,7 +324,7 @@ struct TSequenceContainer {
 #ifdef USING_SIMPLEPTR
 	// Version of pop that guarantees raw pointer input
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	void pop(typename TUnfurled<TType>::Type* obj) { _derived().pop(obj); }
+	void pop(const TFrail<TUnfurledType>& obj) { _derived().pop(obj); }
 #endif
 
 	// Moves an object at index from this to container otr
@@ -373,7 +375,11 @@ struct TSequenceContainer {
 	}
 #endif
 
-public:
+protected:
+
+	static TContainerType& _derived(TSequenceContainer& self) {
+		return self._derived();
+	}
 
 	TContainerType& _derived() {
 		return *static_cast<TContainerType*>(this);
@@ -386,128 +392,105 @@ public:
 
 // Designed to be a container with a key for indexing
 // Note: always requires a comparable key type
-template <typename TContainerType,
-	std::enable_if_t<sutil::is_equality_comparable_v<typename TContainerType::key_type, typename TContainerType::key_type>, int> = 0
->
+/*template <typename TContainerType,
+	std::enable_if_t<sutil::is_equality_comparable_v<typename TContainerTraits<TContainerType>::KeyType, typename TContainerTraits<TContainerType>::KeyType>, int> = 0
+>*/
+template <typename TContainerType>
 struct TAssociativeContainer {
 
-	using TKeyType = typename TContainerType::key_type;
-	using TValueType = typename TContainerType::mapped_type;
-	using Iterator = TVirtualIterator<typename TContainerType::iterator>;
-	using ConstIterator = TVirtualIterator<typename TContainerType::const_iterator>;
+	using Traits = TContainerTraits<TContainerType>;
 
-	virtual ~TAssociativeContainer() = default;
+	using TKeyType = typename Traits::KeyType;
+	using TValueType = typename Traits::ValueType;
+	using Iterator = TVirtualIterator<typename Traits::Iterator>;
+	using ConstIterator = TVirtualIterator<typename Traits::ConstIterator>;
+	constexpr static bool bHasHashing = Traits::bHasHashing;
+
+#ifdef USING_SIMPLEPTR
+	using TUnfurledValueType = typename TUnfurled<TValueType>::Type;
+#endif
 
 	// Returns the size of the container
-	[[nodiscard]] virtual size_t getSize() const
-		GUARANTEED
+	[[nodiscard]] size_t getSize() const { return _derived().getSize(); }
 
 	// Returns if the container is empty
-	[[nodiscard]] virtual bool isEmpty() const
-		GUARANTEED
+	[[nodiscard]] bool isEmpty() const { return _derived().isEmpty(); }
 
 	// Gets the first element possible, or the 'top' of the container
-	[[nodiscard]] virtual TPair<TKeyType, const TValueType&> top() const
-		GUARANTEED
+	[[nodiscard]] TPair<TKeyType, const TValueType&> top() const { return _derived().top(); }
 
 	// Gets the last element possible, or the 'bottom' of the container
-	[[nodiscard]] virtual TPair<TKeyType, const TValueType&> bottom() const
-		GUARANTEED
+	[[nodiscard]] TPair<TKeyType, const TValueType&> bottom() const { return _derived().bottom(); }
 
-	[[nodiscard]] virtual Iterator begin() noexcept
-		GUARANTEED
+	[[nodiscard]] Iterator begin() noexcept { return _derived().begin(); }
 
-	[[nodiscard]] virtual ConstIterator begin() const noexcept
-		GUARANTEED
+	[[nodiscard]] ConstIterator begin() const noexcept { return _derived().begin(); }
 
-	[[nodiscard]] virtual Iterator end() noexcept
-		GUARANTEED
+	[[nodiscard]] Iterator end() noexcept { return _derived().end(); }
 
-	[[nodiscard]] virtual ConstIterator end() const noexcept
-		GUARANTEED
+	[[nodiscard]] ConstIterator end() const noexcept { return _derived().end(); }
 
 	// Checks if a certain key is contained within the container
-	[[nodiscard]] virtual bool contains(const TKeyType& key) const
-		GUARANTEED
+	[[nodiscard]] bool isValid(const TKeyType& key) const { return _derived().isValid(key); }
+
+	// Checks if a certain object is contained within the container
+	[[nodiscard]] bool contains(const TValueType& obj) const { return _derived().contains(obj); }
+
+#ifdef USING_SIMPLEPTR
+	// Version of contains that guarantees raw pointer input
+	[[nodiscard]] bool contains(const TFrail<TUnfurledValueType>& obj) const { return _derived().contains(obj); }
+#endif
+
+	// Find a certain element in the container
+	[[nodiscard]] TKeyType find(const TValueType& obj) const { return _derived().find(obj); }
+
+#ifdef USING_SIMPLEPTR
+	// Version of contains that guarantees raw pointer input
+	[[nodiscard]] TKeyType find(const TFrail<TUnfurledValueType>& obj) const { return _derived().find(obj); }
+#endif
 
 	// Get an element at a specified key
-	[[nodiscard]] virtual TValueType& get(const TKeyType& key)
-		GUARANTEED
+	[[nodiscard]] TValueType& get(const TKeyType& key) { return _derived().get(key); }
 	// Get an element at a specified key
-	[[nodiscard]] virtual const TValueType& get(const TKeyType& key) const
-		GUARANTEED
+	[[nodiscard]] const TValueType& get(const TKeyType& key) const { return _derived().get(key); }
 
 	// Fills container with TType& elements with size amt
-	virtual void resize(size_t amt, std::function<TPair<TKeyType, TValueType>()> func)
-		GUARANTEED
+	void resize(size_t amt, std::function<TPair<TKeyType, TValueType>()> func) { _derived().resize(amt, func); }
 
 	// Reserves memory for n elements
-	virtual void reserve(size_t amt)
-		NOT_GUARANTEED
+	ENABLE_FUNC_IF(bHasHashing)
+	void reserve(size_t amt) { _derived().reserve(amt); }
 
 	// Adds a defaulted element to the container
-	virtual TPair<TKeyType, const TValueType&> push()
-		GUARANTEED
+	TPair<TKeyType, const TValueType&> push() { return _derived().push(); }
 	// Adds a defaulted element at key to the container
-	virtual TValueType& push(const TKeyType& key)
-		GUARANTEED
+	TValueType& push(const TKeyType& key) { return _derived().push(key); }
 	// Adds an element value at key to the container
-	virtual TValueType& push(const TKeyType& key, const TValueType& value)
-		GUARANTEED
+	TValueType& push(const TKeyType& key, const TValueType& value) { return _derived().push(key, value); }
 	// Adds an element value at key to the container
-	virtual TValueType& push(const TKeyType& key, TValueType&& value)
-		GUARANTEED
+	TValueType& push(const TKeyType& key, TValueType&& value) { return _derived().push(key, std::move(value)); }
 	// Adds an element to the container
-	virtual void push(const TPair<TKeyType, TValueType>& pair)
-		GUARANTEED
+	void push(const TPair<TKeyType, TValueType>& pair) { _derived().push(pair); }
 	// Adds an element to the container
-	virtual void push(TPair<TKeyType, TValueType>&& pair)
-		GUARANTEED
+	void push(TPair<TKeyType, TValueType>&& pair) { _derived().push(std::move(pair)); }
 	// Replaces a specified element at key with another element
-	virtual void replace(const TKeyType& key, const TValueType& obj)
-		GUARANTEED
+	void replace(const TKeyType& key, const TValueType& obj) { _derived().replace(key, obj); }
 	// Replaces a specified element at key with another element
-	virtual void replace(const TKeyType& key, TValueType&& obj)
-		GUARANTEED
+	void replace(const TKeyType& key, TValueType&& obj) { _derived().replace(key, std::move(obj)); }
 
 	// Removes all elements from the container
-	virtual void clear()
-		GUARANTEED
+	void clear() { _derived().clear(); }
 
 	// Removes the topmost element from the container
-	virtual void pop()
-		GUARANTEED
+	void pop() { _derived().pop(); }
 	// Removes an element at key from the container
-	virtual void pop(const TKeyType& key)
-		GUARANTEED
-
-private:
-
-	virtual typename TContainerType::node_type extract(const TKeyType& key)
-		GUARANTEED
-
-public:
+	void pop(const TKeyType& key) { _derived().pop(key); }
 
 	// Moves an object at key from this to container otr
-	template <typename TOtherContainerType,
-		std::enable_if_t<std::conjunction_v<
-			std::is_convertible<TKeyType, typename TAssociativeContainer<TOtherContainerType>::TKeyType>,
-			std::is_convertible<TValueType, typename TAssociativeContainer<TOtherContainerType>::TValueType>
-	>, int> = 0
-	>
+	template <typename TOtherContainerType>
 	void transfer(TAssociativeContainer<TOtherContainerType>& otr, const TKeyType& key) {
-		auto itr = extract(key);
-		// Prefer move, but copy if not available
-		if constexpr (std::is_move_constructible_v<TValueType>) {
-			otr.push(itr.key(), std::move(itr.mapped()));
-		} else {
-			otr.push(itr.key(), itr.mapped());
-		}
+		_derived().transfer(otr, key);
 	}
-
-	// Iterates through each element (Maps do not support reverse iteration)
-	virtual void forEach(const std::function<void(TPair<TKeyType, const TValueType&>)>& func) const
-		GUARANTEED
 
 #ifdef USING_SIMPLEARCHIVE
 	friend CInputArchive& operator>>(CInputArchive& inArchive, TAssociativeContainer& inValue) {
@@ -529,157 +512,120 @@ public:
 		return inArchive;
 	}
 #endif
+
+protected:
+
+	static TContainerType& _derived(TAssociativeContainer& self) {
+		return self._derived();
+	}
+
+	TContainerType& _derived() {
+		return *static_cast<TContainerType*>(this);
+	}
+
+	const TContainerType& _derived() const {
+		return *static_cast<const TContainerType*>(this);
+	}
 };
 
 // Designed to be a container without indexing
 // Note: always requires a comparable type
-template <typename TContainerType,
-	std::enable_if_t<sutil::is_equality_comparable_v<typename TContainerType::value_type, typename TContainerType::value_type>, int> = 0
->
+/*template <typename TContainerType,
+	std::enable_if_t<sutil::is_equality_comparable_v<typename TContainerTraits<TContainerType>::Type, typename TContainerTraits<TContainerType>::Type>, int> = 0
+>*/
+template <typename TContainerType>
 struct TSingleAssociativeContainer {
 
-	using TType = typename TContainerType::value_type;
-	using Iterator = TVirtualIterator<typename TContainerType::iterator>;
-	using ConstIterator = TVirtualIterator<typename TContainerType::const_iterator>;
+	using Traits = TContainerTraits<TContainerType>;
 
-	virtual ~TSingleAssociativeContainer() = default;
+	using TType = typename Traits::Type;
+	using Iterator = TVirtualIterator<typename Traits::Iterator>;
+	using ConstIterator = TVirtualIterator<typename Traits::ConstIterator>;
+	constexpr static bool bHasHashing = Traits::bHasHashing;
+
+#ifdef USING_SIMPLEPTR
+	using TUnfurledType = typename TUnfurled<TType>::Type;
+#endif
 
 	// Returns the size of the container
-	[[nodiscard]] virtual size_t getSize() const
-		GUARANTEED
+	[[nodiscard]] size_t getSize() const { return _derived().getSize(); }
 
 	// Returns if the container is empty
-	[[nodiscard]] virtual bool isEmpty() const
-		GUARANTEED
+	[[nodiscard]] bool isEmpty() const { return _derived().isEmpty(); }
 
 	// Gets the first element possible, or the 'top' of the container
-	[[nodiscard]] virtual const TType& top() const
-		GUARANTEED
+	[[nodiscard]] const TType& top() const { return _derived().top(); }
 
 	// Gets the last element possible, or the 'bottom' of the container
-	[[nodiscard]] virtual const TType& bottom() const
-		GUARANTEED
+	[[nodiscard]] const TType& bottom() const { return _derived().bottom(); }
 
-	[[nodiscard]] virtual Iterator begin() noexcept
-		GUARANTEED
+	[[nodiscard]] Iterator begin() noexcept { return _derived().begin(); }
 
-	[[nodiscard]] virtual ConstIterator begin() const noexcept
-		GUARANTEED
+	[[nodiscard]] ConstIterator begin() const noexcept { return _derived().begin(); }
 
-	[[nodiscard]] virtual Iterator end() noexcept
-		GUARANTEED
+	[[nodiscard]] Iterator end() noexcept { return _derived().end(); }
 
-	[[nodiscard]] virtual ConstIterator end() const noexcept
-		GUARANTEED
+	[[nodiscard]] ConstIterator end() const noexcept { return _derived().end(); }
 
 	// Checks if a certain index is contained within the container
-	[[nodiscard]] virtual bool contains(const size_t index) const {
+	[[nodiscard]] bool contains(const size_t index) const {
 		return index > 0 && index < getSize();
 	}
 
 	// Checks if a certain object is contained within the container
-	[[nodiscard]] virtual bool contains(const TType& obj) const
-		GUARANTEED
+	[[nodiscard]] bool contains(const TType& obj) const { return _derived().contains(obj); }
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
-	[[nodiscard]] virtual bool contains(typename TUnfurled<TType>::Type* obj) const
-		GUARANTEED
+	[[nodiscard]] bool contains(const TFrail<TUnfurledType>& obj) const { return _derived().contains(obj); }
 #endif
 
 	// Fills container with n defaulted elements
-	virtual void resize(size_t amt)
-		GUARANTEED
+	void resize(size_t amt) { _derived().resize(amt); }
 
 	// Fills container with TType& elements with size amt
-	virtual void resize(size_t amt, std::function<TType()> func)
-		GUARANTEED
+	void resize(size_t amt, std::function<TType()> func) { _derived().resize(amt, func); }
 
 	// Reserves memory for n elements
-	virtual void reserve(size_t amt)
-		NOT_GUARANTEED
+	ENABLE_FUNC_IF(bHasHashing)
+	void reserve(size_t amt) { _derived().reserve(amt); }
 
 	// Adds a defaulted element to the container
-	virtual const TType& push()
-		GUARANTEED
+	const TType& push() { return _derived().push(); }
 	// Adds an element to the container
-	virtual void push(const TType& obj)
-		GUARANTEED
+	void push(const TType& obj) { _derived().push(obj); }
 	// Adds an element to the container
-	virtual void push(TType&& obj)
-		GUARANTEED
+	void push(TType&& obj) { _derived().push(std::move(obj)); }
 
 	// Replaces a specified element with another element
-	virtual void replace(const TType&, const TType&)
-		GUARANTEED
+	void replace(const TType& tgt, const TType& obj) { _derived().replace(tgt, obj); }
 	// Replaces a specified element with another element
-	virtual void replace(const TType&, TType&&)
-		GUARANTEED
+	void replace(const TType& tgt, TType&& obj) { _derived().replace(tgt, std::move(obj)); }
 
 	// Removes all elements from the container
-	virtual void clear()
-		GUARANTEED
+	void clear() { _derived().clear(); }
 
 	// Removes the topmost element from the container
-	virtual void pop()
-		GUARANTEED
+	void pop() { _derived().pop(); }
 	// Removes an element from the container
-	virtual void pop(const TType&)
-		GUARANTEED
+	void pop(const TType& obj) { _derived().pop(obj); }
 
 #ifdef USING_SIMPLEPTR
 	// Version of pop that guarantees raw pointer input, is O(n), unlike normal pop, due to comparisons
-	virtual void pop(typename TUnfurled<TType>::Type* obj)
-		GUARANTEED
+	void pop(const TFrail<TUnfurledType>& obj) { _derived().pop(obj); }
 #endif
-
-private:
-
-	virtual typename TContainerType::node_type extract(TType& obj)
-		GUARANTEED
-
-#ifdef USING_SIMPLEPTR
-	virtual typename TContainerType::node_type extract(typename TUnfurled<TType>::Type* obj)
-		GUARANTEED
-#endif
-
-public:
 
 	// Moves an object from this to container otr
-	template <typename TOtherContainerType,
-		std::enable_if_t<std::conjunction_v<std::is_convertible<TType, typename TSequenceContainer<TOtherContainerType>::TType>>, int> = 0
-	>
+	template <typename TOtherContainerType>
 	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, TType& obj) {
-		if (!this->contains(obj)) return;
-		auto itr = extract(obj);
-		// Prefer move, but copy if not available
-		if constexpr (std::is_move_constructible_v<TType>) {
-			otr.push(std::move(itr.value()));
-		} else {
-			otr.push(itr.value());
-		}
+		_derived().transfer(otr, obj);
 	}
 
 #ifdef USING_SIMPLEPTR
 	// Version of transfer that guarantees raw pointer input
-	template <typename TOtherContainerType,
-		std::enable_if_t<std::conjunction_v<
-			std::is_convertible<TType, typename TSingleAssociativeContainer<TOtherContainerType>::TType>
-	>, int> = 0
-	>
-	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, typename TUnfurled<TType>::Type* obj) {
-		if constexpr (sstl::is_managed_v<TType>) {
-			if (!this->contains(obj)) return;
-			auto itr = extractPtr(obj);
-			// Prefer move, but copy if not available
-			if constexpr (std::is_move_constructible_v<TType>) {
-				otr.push(std::move(itr.value()));
-			} else {
-				otr.push(itr.value());
-			}
-		} else {
-			transfer(otr, *obj);
-		}
+	template <typename TOtherContainerType>
+	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, const TFrail<TUnfurledType>& obj) {
+		_derived().transfer(otr, obj);
 	}
 #endif
 
@@ -703,4 +649,18 @@ public:
 		return inArchive;
 	}
 #endif
+
+protected:
+
+	static TContainerType& _derived(TSingleAssociativeContainer& self) {
+		return self._derived();
+	}
+
+	TContainerType& _derived() {
+		return *static_cast<TContainerType*>(this);
+	}
+
+	const TContainerType& _derived() const {
+		return *static_cast<const TContainerType*>(this);
+	}
 };

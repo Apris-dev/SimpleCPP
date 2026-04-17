@@ -3,6 +3,11 @@
 #include "sptr/Common.h"
 #include "sptr/Shared.h"
 
+namespace sstl {
+	template <typename TType>
+	struct is_managed;
+}
+
 template <typename TType>
 struct TWeak {
 
@@ -196,6 +201,11 @@ noexcept {
 		return ptr && ptr.get() == snd;
 	}
 
+	// Compare raw pointer
+	friend bool operator==(const void* fst, const TWeak& snd) noexcept {
+		return snd == fst;
+	}
+
 	friend bool operator!=(const TWeak& fst, const TWeak& snd) noexcept {
 		return fst.m_ptr.owner_before(snd.m_ptr) ||
 			snd.m_ptr.owner_before(fst.m_ptr);
@@ -205,6 +215,53 @@ noexcept {
 	friend bool operator!=(const TWeak& fst, const void* snd) noexcept {
 		auto ptr = fst.m_ptr.lock();
 		return !ptr || ptr.get() != snd;
+	}
+
+	// Compare raw pointer
+	friend bool operator!=(const void* fst, const TWeak& snd) noexcept {
+		return snd != fst;
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	friend bool operator<(const TWeak& fst, const TOtherType& snd) noexcept {
+		return fst.get() < snd.get();
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	friend bool operator<=(const TWeak& fst, const TOtherType& snd) noexcept {
+		return fst.get() <= snd.get();
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	friend bool operator>(const TWeak& fst, const TOtherType& snd) noexcept {
+		return fst.get() > snd.get();
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	friend bool operator>=(const TWeak& fst, const TOtherType& snd) noexcept {
+		return fst.get() >= snd.get();
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	friend bool operator==(const TWeak& fst, const TOtherType& snd) noexcept {
+		return fst.get() == snd.get();
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	friend bool operator!=(const TWeak& fst, const TOtherType& snd) noexcept {
+		return fst.get() != snd.get();
 	}
 
 #ifdef USING_SIMPLEARCHIVE
@@ -224,6 +281,9 @@ noexcept {
 #endif
 
 private:
+
+	template <typename>
+	friend struct TUnique;
 
 	template <typename>
 	friend struct TShared;
