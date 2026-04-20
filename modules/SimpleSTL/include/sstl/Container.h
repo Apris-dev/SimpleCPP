@@ -270,6 +270,7 @@ struct TSequenceContainer : SContainer {
 
 #ifdef USING_SIMPLEPTR
 	using TUnfurledType = typename TUnfurled<TType>::Type;
+	constexpr static bool bIsFrailType = std::is_same_v<TType, TFrail<TUnfurledType>>;
 #endif
 
 	// Returns the size of the container
@@ -343,6 +344,7 @@ struct TSequenceContainer : SContainer {
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
+	ENABLE_FUNC_IF(!bIsFrailType)
 	[[nodiscard]] bool contains(const TFrail<TUnfurledType>& obj) const { return derived(*this).contains(obj); }
 #endif
 
@@ -351,6 +353,7 @@ struct TSequenceContainer : SContainer {
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
+	ENABLE_FUNC_IF(!bIsFrailType)
 	[[nodiscard]] size_t find(const TFrail<TUnfurledType>& obj) const { return derived(*this).find(obj); }
 #endif
 
@@ -432,7 +435,7 @@ struct TSequenceContainer : SContainer {
 
 #ifdef USING_SIMPLEPTR
 	// Version of pop that guarantees raw pointer input
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
+	ENABLE_FUNC_IF(!bIsLimitedAccess && !bIsFrailType)
 	void pop(const TFrail<TUnfurledType>& obj) { derived(*this).pop(obj); }
 #endif
 
@@ -513,6 +516,7 @@ struct TAssociativeContainer : SContainer {
 
 #ifdef USING_SIMPLEPTR
 	using TUnfurledValueType = typename TUnfurled<TValueType>::Type;
+	constexpr static bool bIsFrailType = std::is_same_v<TValueType, TFrail<TUnfurledValueType>>;
 #endif
 
 	// Returns the size of the container
@@ -551,6 +555,7 @@ struct TAssociativeContainer : SContainer {
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
+	ENABLE_FUNC_IF(!bIsFrailType)
 	[[nodiscard]] bool contains(const TFrail<TUnfurledValueType>& obj) const { return derived(*this).contains(obj); }
 #endif
 
@@ -559,6 +564,7 @@ struct TAssociativeContainer : SContainer {
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
+	ENABLE_FUNC_IF(!bIsFrailType)
 	[[nodiscard]] TKeyType find(const TFrail<TUnfurledValueType>& obj) const { return derived(*this).find(obj); }
 #endif
 
@@ -654,6 +660,7 @@ struct TSingleAssociativeContainer : SContainer {
 
 #ifdef USING_SIMPLEPTR
 	using TUnfurledType = typename TUnfurled<TType>::Type;
+	constexpr static bool bIsFrailType = std::is_same_v<TType, TFrail<TUnfurledType>>;
 #endif
 
 	// Returns the size of the container
@@ -698,6 +705,7 @@ struct TSingleAssociativeContainer : SContainer {
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
+	ENABLE_FUNC_IF(!bIsFrailType)
 	[[nodiscard]] bool contains(const TFrail<TUnfurledType>& obj) const { return derived(*this).contains(obj); }
 #endif
 
@@ -733,6 +741,7 @@ struct TSingleAssociativeContainer : SContainer {
 
 #ifdef USING_SIMPLEPTR
 	// Version of pop that guarantees raw pointer input, is O(n), unlike normal pop, due to comparisons
+	ENABLE_FUNC_IF(!bIsFrailType)
 	void pop(const TFrail<TUnfurledType>& obj) { derived(*this).pop(obj); }
 #endif
 
@@ -744,7 +753,9 @@ struct TSingleAssociativeContainer : SContainer {
 
 #ifdef USING_SIMPLEPTR
 	// Version of transfer that guarantees raw pointer input
-	template <typename TOtherContainerType>
+	template <typename TOtherContainerType, bool b = !bIsFrailType,
+		std::enable_if_t<b, int> = 0
+	>
 	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, const TFrail<TUnfurledType>& obj) {
 		derived(*this).transfer(otr, obj);
 	}
