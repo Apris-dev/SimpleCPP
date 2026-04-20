@@ -138,9 +138,12 @@ struct TContainerTraits<TQueue<TType>> {
 	using Type = TType;
 	using ContainerType = std::deque<TType>;
 	using Iterator = typename ContainerType::iterator;
+	using ReverseIterator = typename ContainerType::reverse_iterator;
 	using ConstIterator = typename ContainerType::const_iterator;
+	using ConstReverseIterator = typename ContainerType::const_reverse_iterator;
 	constexpr static bool bIsContiguousMemory = false;
 	constexpr static bool bIsLimitedAccess = true;
+	constexpr static bool bIsForwardOnly = true;
 	constexpr static bool bIsLimitedSize = false;
 };
 

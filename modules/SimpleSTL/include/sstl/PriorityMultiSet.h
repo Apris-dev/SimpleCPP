@@ -57,12 +57,28 @@ struct TPriorityMultiSet : TSingleAssociativeContainer<TPriorityMultiSet<TType>>
 		return m_Container.begin();
 	}
 
+	[[nodiscard]] typename Super::ReverseIterator rbegin() noexcept {
+		return m_Container.rbegin();
+	}
+
+	[[nodiscard]] typename Super::ConstReverseIterator rbegin() const noexcept {
+		return m_Container.rbegin();
+	}
+
 	[[nodiscard]] typename Super::Iterator end() noexcept {
 		return m_Container.end();
 	}
 
 	[[nodiscard]] typename Super::ConstIterator end() const noexcept {
 		return m_Container.end();
+	}
+
+	[[nodiscard]] typename Super::ReverseIterator rend() noexcept {
+		return m_Container.rend();
+	}
+
+	[[nodiscard]] typename Super::ConstReverseIterator rend() const noexcept {
+		return m_Container.rend();
 	}
 
 	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
@@ -188,8 +204,11 @@ struct TContainerTraits<TPriorityMultiSet<TType>> {
 	using Type = TType;
 	using ContainerType = std::multiset<TType, TContainerHasher<TType>>;
 	using Iterator = typename ContainerType::iterator;
+	using ReverseIterator = typename ContainerType::reverse_iterator;
 	using ConstIterator = typename ContainerType::const_iterator;
+	using ConstReverseIterator = typename ContainerType::const_reverse_iterator;
 	constexpr static bool bHasHashing = false;
+	constexpr static bool bIsForwardOnly = false;
 };
 
 template <typename TType, typename... TArgs>

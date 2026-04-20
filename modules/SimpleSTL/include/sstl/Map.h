@@ -220,8 +220,11 @@ struct TContainerTraits<TMap<TKeyType, TValueType>> {
 	using ValueType = TValueType;
 	using ContainerType = std::unordered_map<TKeyType, TValueType, TContainerHasher<TKeyType>>;
 	using Iterator = typename ContainerType::iterator;
+	using ReverseIterator = typename ContainerType::iterator;
 	using ConstIterator = typename ContainerType::const_iterator;
+	using ConstReverseIterator = typename ContainerType::const_iterator;
 	constexpr static bool bHasHashing = true;
+	constexpr static bool bIsForwardOnly = true;
 };
 
 template <typename TKeyType, typename TValueType>

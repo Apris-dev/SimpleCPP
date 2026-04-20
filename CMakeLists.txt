@@ -17,7 +17,7 @@ if(SIMPLECPP_TEST)
     enable_testing()
 
     # Set default CXX_STANDARD if testing
-    set(SimpleCPP_CXX_STANDARD 23)
+    set(SimpleCPP_CXX_STANDARD 17)
 endif()
 
 # If not overridden, STL CXX Standard is the same as parent

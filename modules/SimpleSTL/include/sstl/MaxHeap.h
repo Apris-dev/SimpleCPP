@@ -75,12 +75,28 @@ struct TMaxHeap : TSequenceContainer<TMaxHeap<TType>> {
 		return m_Container.begin();
 	}
 
+	[[nodiscard]] typename Super::ReverseIterator rbegin() noexcept {
+		return m_Container.rbegin();
+	}
+
+	[[nodiscard]] typename Super::ConstReverseIterator rbegin() const noexcept {
+		return m_Container.rbegin();
+	}
+
 	[[nodiscard]] typename Super::Iterator end() noexcept {
 		return m_Container.end();
 	}
 
 	[[nodiscard]] typename Super::ConstIterator end() const noexcept {
 		return m_Container.end();
+	}
+
+	[[nodiscard]] typename Super::ReverseIterator rend() noexcept {
+		return m_Container.rend();
+	}
+
+	[[nodiscard]] typename Super::ConstReverseIterator rend() const noexcept {
+		return m_Container.rend();
 	}
 
 	[[nodiscard]] bool isValid(size_t index) const {
@@ -248,9 +264,12 @@ struct TContainerTraits<TMaxHeap<TType>> {
 	using Type = TType;
 	using ContainerType = std::vector<TType>;
 	using Iterator = typename ContainerType::iterator;
+	using ReverseIterator = typename ContainerType::reverse_iterator;
 	using ConstIterator = typename ContainerType::const_iterator;
+	using ConstReverseIterator = typename ContainerType::const_reverse_iterator;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;
+	constexpr static bool bIsForwardOnly = true;
 	constexpr static bool bIsLimitedSize = false;
 };
 

@@ -65,6 +65,10 @@ struct TVirtualIterator {
 		return *itr;
 	}
 
+	decltype(auto) operator->() noexcept {
+    	return itr;
+    }
+
 	decltype(auto) operator[](const int offset) noexcept {
 		return itr[offset];
     }
@@ -255,10 +259,13 @@ struct TSequenceContainer : SContainer {
 
 	using TType = typename Traits::Type;
 	using Iterator = TVirtualIterator<typename Traits::Iterator>;
+	using ReverseIterator = TVirtualIterator<typename Traits::ReverseIterator>;
 	using ConstIterator = TVirtualIterator<typename Traits::ConstIterator>;
+	using ConstReverseIterator = TVirtualIterator<typename Traits::ConstReverseIterator>;
 	using SubcontainerType = typename Traits::ContainerType;
 	constexpr static bool bIsContiguousMemory = Traits::bIsContiguousMemory;
 	constexpr static bool bIsLimitedAccess = Traits::bIsLimitedAccess;
+	constexpr static bool bIsForwardOnly = Traits::bIsForwardOnly;
 	constexpr static bool bIsLimitedSize = Traits::bIsLimitedSize;
 
 #ifdef USING_SIMPLEPTR
@@ -294,7 +301,19 @@ struct TSequenceContainer : SContainer {
 	}
 
 	// Allow const access for limited access (like asking people in a queue a question)
-	[[nodiscard]] ConstIterator begin() const noexcept { return derived(*this).begin(); }
+	[[nodiscard]] ConstIterator begin() const noexcept {
+		return derived(*this).begin();
+	}
+
+	ENABLE_FUNC_IF(!bIsLimitedAccess && !bIsForwardOnly)
+	[[nodiscard]] ReverseIterator rbegin() noexcept {
+		return derived(*this).rbegin();
+	}
+
+	ENABLE_FUNC_IF(!bIsLimitedAccess && !bIsForwardOnly)
+	[[nodiscard]] ConstReverseIterator rbegin() const noexcept {
+		return derived(*this).rbegin();
+	}
 
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	[[nodiscard]] Iterator end() noexcept {
@@ -302,7 +321,19 @@ struct TSequenceContainer : SContainer {
 	}
 
 	// Allow const access for limited access (like asking people in a queue a question)
-	[[nodiscard]] ConstIterator end() const noexcept { return derived(*this).end(); }
+	[[nodiscard]] ConstIterator end() const noexcept {
+		return derived(*this).end();
+	}
+
+	ENABLE_FUNC_IF(!bIsLimitedAccess && !bIsForwardOnly)
+	[[nodiscard]] ReverseIterator rend() noexcept {
+		return derived(*this).rend();
+	}
+
+	ENABLE_FUNC_IF(!bIsLimitedAccess && !bIsForwardOnly)
+	[[nodiscard]] ConstReverseIterator rend() const noexcept {
+		return derived(*this).rend();
+	}
 
 	// Checks if a certain index is contained within the container
 	[[nodiscard]] bool isValid(const size_t index) const  { return derived(*this).isValid(index); }
@@ -475,7 +506,9 @@ struct TAssociativeContainer : SContainer {
 	using TKeyType = typename Traits::KeyType;
 	using TValueType = typename Traits::ValueType;
 	using Iterator = TVirtualIterator<typename Traits::Iterator>;
+	using ReverseIterator = TVirtualIterator<typename Traits::ReverseIterator>;
 	using ConstIterator = TVirtualIterator<typename Traits::ConstIterator>;
+	using ConstReverseIterator = TVirtualIterator<typename Traits::ConstReverseIterator>;
 	constexpr static bool bHasHashing = Traits::bHasHashing;
 
 #ifdef USING_SIMPLEPTR
@@ -498,9 +531,17 @@ struct TAssociativeContainer : SContainer {
 
 	[[nodiscard]] ConstIterator begin() const noexcept { return derived(*this).begin(); }
 
+	[[nodiscard]] ReverseIterator rbegin() noexcept { return derived(*this).rbegin(); }
+
+	[[nodiscard]] ConstReverseIterator rbegin() const noexcept { return derived(*this).rbegin(); }
+
 	[[nodiscard]] Iterator end() noexcept { return derived(*this).end(); }
 
 	[[nodiscard]] ConstIterator end() const noexcept { return derived(*this).end(); }
+
+	[[nodiscard]] ReverseIterator rend() noexcept { return derived(*this).rend(); }
+
+	[[nodiscard]] ConstReverseIterator rend() const noexcept { return derived(*this).rend(); }
 
 	// Checks if a certain key is contained within the container
 	[[nodiscard]] bool isValid(const TKeyType& key) const { return derived(*this).isValid(key); }
@@ -605,8 +646,11 @@ struct TSingleAssociativeContainer : SContainer {
 
 	using TType = typename Traits::Type;
 	using Iterator = TVirtualIterator<typename Traits::Iterator>;
+	using ReverseIterator = TVirtualIterator<typename Traits::ReverseIterator>;
 	using ConstIterator = TVirtualIterator<typename Traits::ConstIterator>;
+	using ConstReverseIterator = TVirtualIterator<typename Traits::ConstReverseIterator>;
 	constexpr static bool bHasHashing = Traits::bHasHashing;
+	constexpr static bool bIsForwardOnly = Traits::bIsForwardOnly;
 
 #ifdef USING_SIMPLEPTR
 	using TUnfurledType = typename TUnfurled<TType>::Type;
@@ -628,9 +672,21 @@ struct TSingleAssociativeContainer : SContainer {
 
 	[[nodiscard]] ConstIterator begin() const noexcept { return derived(*this).begin(); }
 
+	ENABLE_FUNC_IF(!bIsForwardOnly)
+	[[nodiscard]] ReverseIterator rbegin() noexcept { return derived(*this).rbegin(); }
+
+	ENABLE_FUNC_IF(!bIsForwardOnly)
+	[[nodiscard]] ConstReverseIterator rbegin() const noexcept { return derived(*this).rbegin(); }
+
 	[[nodiscard]] Iterator end() noexcept { return derived(*this).end(); }
 
 	[[nodiscard]] ConstIterator end() const noexcept { return derived(*this).end(); }
+
+	ENABLE_FUNC_IF(!bIsForwardOnly)
+	[[nodiscard]] ReverseIterator rend() noexcept { return derived(*this).rend(); }
+
+	ENABLE_FUNC_IF(!bIsForwardOnly)
+	[[nodiscard]] ConstReverseIterator rend() const noexcept { return derived(*this).rend(); }
 
 	// Checks if a certain index is contained within the container
 	[[nodiscard]] bool contains(const size_t index) const {

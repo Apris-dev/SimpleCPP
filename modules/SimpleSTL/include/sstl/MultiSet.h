@@ -195,8 +195,11 @@ struct TContainerTraits<TMultiSet<TType>> {
 	using Type = TType;
 	using ContainerType = std::unordered_multiset<TType, TContainerHasher<TType>>;
 	using Iterator = typename ContainerType::iterator;
+	using ReverseIterator = typename ContainerType::iterator;
 	using ConstIterator = typename ContainerType::const_iterator;
+	using ConstReverseIterator = typename ContainerType::const_iterator;
 	constexpr static bool bHasHashing = true;
+	constexpr static bool bIsForwardOnly = true;
 };
 
 template <typename TType, typename... TArgs>
