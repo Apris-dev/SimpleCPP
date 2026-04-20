@@ -199,10 +199,20 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 	void transfer(TSequenceContainer<TForwardList>& list, const size_t index) {
 		auto itr = m_Container.before_begin();
 		std::advance(itr, index);
-		Super::_derived(list).m_Container.splice_after(Super::_derived(list).m_Container.before_begin(), m_Container, itr);
+		SContainer::derived(list).m_Container.splice_after(SContainer::derived(list).m_Container.before_begin(), m_Container, itr);
+	}
+
+	template <typename TOtherContainerType>
+	void append(const TSequenceContainer<TOtherContainerType>& otr) {
+		m_Container.insert_after(m_Container.before_begin(),  SContainer::getSubcontainer(otr).begin(), SContainer::getSubcontainer(otr).end());
 	}
 
 protected:
+
+	friend struct SContainer;
+
+	auto& getSubcontainer() { return m_Container; }
+	const auto& getSubcontainer() const { return m_Container; }
 
 	std::forward_list<TType> m_Container;
 };
@@ -215,6 +225,7 @@ struct TContainerTraits<TForwardList<TType>> {
 	using ConstIterator = typename ContainerType::const_iterator;
 	constexpr static bool bIsContiguousMemory = false;
 	constexpr static bool bIsLimitedAccess = false;
+	constexpr static bool bIsLimitedSize = false;
 };
 
 template <typename TType, typename... TArgs>

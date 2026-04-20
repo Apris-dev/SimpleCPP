@@ -196,7 +196,17 @@ struct TDeque : TSequenceContainer<TDeque<TType>> {
 		popAt(index);
 	}
 
+	template <typename TOtherContainerType>
+	void append(const TSequenceContainer<TOtherContainerType>& otr) {
+		m_Container.insert(m_Container.end(),  SContainer::getSubcontainer(otr).begin(), SContainer::getSubcontainer(otr).end());
+	}
+
 protected:
+
+	friend struct SContainer;
+
+	auto& getSubcontainer() { return m_Container; }
+	const auto& getSubcontainer() const { return m_Container; }
 
 	std::deque<TType> m_Container;
 };
@@ -209,6 +219,7 @@ struct TContainerTraits<TDeque<TType>> {
 	using ConstIterator = typename ContainerType::const_iterator;
 	constexpr static bool bIsContiguousMemory = false;
 	constexpr static bool bIsLimitedAccess = false;
+	constexpr static bool bIsLimitedSize = false;
 };
 
 template <typename TType, typename... TArgs>

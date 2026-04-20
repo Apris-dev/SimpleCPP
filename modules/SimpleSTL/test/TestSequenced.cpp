@@ -110,9 +110,55 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 	}
 }
 
+template <typename TContainerType>
+void appendTest(const std::string& containerName, TSequenceContainer<TContainerType>& container) {
+
+	using TType = typename TSequenceContainer<TContainerType>::TType;
+
+	if constexpr (std::is_copy_constructible_v<TType> && !TSequenceContainer<TContainerType>::bIsLimitedSize) {
+		{
+			std::cout << "Vector Append Test" << std::endl;
+
+			container.push(TUnfurled<TType>::template create<SObject>((size_t)5, containerName));
+			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
+			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
+
+			TVector<TType> from;
+			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
+			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
+			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
+
+			container.append(from);
+
+			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
+
+			container.clear();
+		}
+
+		{
+			std::cout << "List Append Test" << std::endl;
+
+			container.push(TUnfurled<TType>::template create<SObject>((size_t)5, containerName));
+			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
+			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
+
+			TList<TType> from;
+			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
+			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
+			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
+
+			container.append(from);
+
+			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
+
+			container.clear();
+		}
+	}
+}
+
 #define SINGLE_TEST(...) \
 	{ std::cout << std::endl << "--------------------" << std::endl << #__VA_ARGS__ " Test" << std::endl; } \
-	{ __VA_ARGS__ container; containerTest(#__VA_ARGS__, container); transferTest(#__VA_ARGS__, container); }
+	{ __VA_ARGS__ container; containerTest(#__VA_ARGS__, container); transferTest(#__VA_ARGS__, container); appendTest(#__VA_ARGS__, container); }
 
 #define DO_TEST(x) \
     std::cout << std::endl << std::endl << "******************** " #x " ********************" << std::endl << std::endl; \

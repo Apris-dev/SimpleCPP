@@ -264,6 +264,11 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 protected:
 
+	friend struct SContainer;
+
+	auto& getSubcontainer() { return m_Container; }
+	const auto& getSubcontainer() const { return m_Container; }
+
 	void arrayArgsInit(const TType& obj, size_t& index) noexcept {
 		m_Container[index] = obj;
 		m_IsPopulated[index] = true;
@@ -288,4 +293,5 @@ struct TContainerTraits<TArray<TType, TSize>> {
 	using ConstIterator = typename ContainerType::const_iterator;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;
+	constexpr static bool bIsLimitedSize = true;
 };

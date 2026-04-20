@@ -222,7 +222,18 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 		popAt(index);
 	}
 
+	template <typename TOtherContainerType>
+	void append(const TSequenceContainer<TOtherContainerType>& otr) {
+		m_Container.insert(m_Container.end(),  SContainer::getSubcontainer(otr).begin(), SContainer::getSubcontainer(otr).end());
+		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
+	}
+
 protected:
+
+	friend struct SContainer;
+
+	auto& getSubcontainer() { return m_Container; }
+	const auto& getSubcontainer() const { return m_Container; }
 
 	struct MinCmp {
 		bool operator()(const TType& a, const TType& b) const {
@@ -241,6 +252,7 @@ struct TContainerTraits<TMinHeap<TType>> {
 	using ConstIterator = typename ContainerType::const_iterator;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;
+	constexpr static bool bIsLimitedSize = false;
 };
 
 template <typename TType, typename... TArgs>

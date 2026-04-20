@@ -207,10 +207,20 @@ struct TList : TSequenceContainer<TList<TType>> {
 	void transfer(TSequenceContainer<TList>& list, const size_t index) {
 		auto itr = m_Container.begin();
 		std::advance(itr, index);
-		Super::_derived(list).m_Container.splice(Super::_derived(list).m_Container.begin(), m_Container, itr);
+		SContainer::derived(list).m_Container.splice(SContainer::derived(list).m_Container.begin(), m_Container, itr);
+	}
+
+	template <typename TOtherContainerType>
+	void append(const TSequenceContainer<TOtherContainerType>& otr) {
+		m_Container.insert(m_Container.end(),  SContainer::getSubcontainer(otr).begin(), SContainer::getSubcontainer(otr).end());
 	}
 
 protected:
+
+	friend struct SContainer;
+
+	auto& getSubcontainer() { return m_Container; }
+	const auto& getSubcontainer() const { return m_Container; }
 
 	std::list<TType> m_Container;
 };
@@ -223,6 +233,7 @@ struct TContainerTraits<TList<TType>> {
 	using ConstIterator = typename ContainerType::const_iterator;
 	constexpr static bool bIsContiguousMemory = false;
 	constexpr static bool bIsLimitedAccess = false;
+	constexpr static bool bIsLimitedSize = false;
 };
 
 template <typename TType, typename... TArgs>

@@ -170,90 +170,122 @@ struct TContainerHasher {
 template <typename>
 struct TContainerTraits;
 
+template <typename>
+struct TSequenceContainer;
+
+// Allow subclasses to get each other's containers without public access
+struct SContainer {
+
+protected:
+
+	template <typename TContainerType>
+	static TContainerType& derived(TSequenceContainer<TContainerType>& self) {
+		return static_cast<TContainerType&>(self);
+	}
+
+	template <typename TContainerType>
+	static const TContainerType& derived(const TSequenceContainer<TContainerType>& self) {
+		return static_cast<const TContainerType&>(self);
+	}
+
+	template <typename TContainerType>
+	static decltype(auto) getSubcontainer(TSequenceContainer<TContainerType>& self) {
+		return derived(self).getSubcontainer();
+	}
+
+	template <typename TContainerType>
+	static decltype(auto) getSubcontainer(const TSequenceContainer<TContainerType>& self) {
+		return derived(self).getSubcontainer();
+	}
+
+};
+
 // A basic container of any amount of objects
 // A size of 0 implies a dynamic array
 template <typename TContainerType>
-struct TSequenceContainer {
+struct TSequenceContainer : SContainer {
 
 	using Traits = TContainerTraits<TContainerType>;
 
 	using TType = typename Traits::Type;
 	using Iterator = TVirtualIterator<typename Traits::Iterator>;
 	using ConstIterator = TVirtualIterator<typename Traits::ConstIterator>;
+	using SubcontainerType = typename Traits::ContainerType;
 	constexpr static bool bIsContiguousMemory = Traits::bIsContiguousMemory;
 	constexpr static bool bIsLimitedAccess = Traits::bIsLimitedAccess;
+	constexpr static bool bIsLimitedSize = Traits::bIsLimitedSize;
 
 #ifdef USING_SIMPLEPTR
 	using TUnfurledType = typename TUnfurled<TType>::Type;
 #endif
 
 	// Returns the size of the container
-	[[nodiscard]] size_t getSize() const { return _derived().getSize(); }
+	[[nodiscard]] size_t getSize() const { return derived(*this).getSize(); }
 
 	// Returns if the container is empty
-	[[nodiscard]] bool isEmpty() const { return _derived().isEmpty(); }
+	[[nodiscard]] bool isEmpty() const { return derived(*this).isEmpty(); }
 
 	// Gets the first element possible, or the 'top' of the container
-	[[nodiscard]] TType& top() { return _derived().top(); }
+	[[nodiscard]] TType& top() { return derived(*this).top(); }
 
 	// Gets the first element possible, or the 'top' of the container
-	[[nodiscard]] const TType& top() const { return _derived().top(); }
+	[[nodiscard]] const TType& top() const { return derived(*this).top(); }
 
 	// Gets the first element possible, or the 'top' of the container
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	[[nodiscard]] TType& bottom() {
-		return _derived().bottom();
+		return derived(*this).bottom();
 	}
 	// Gets the first element possible, or the 'top' of the container
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	[[nodiscard]] const TType& bottom() const {
-		return _derived().bottom();
+		return derived(*this).bottom();
 	}
 
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	[[nodiscard]] Iterator begin() noexcept {
-		return _derived().begin();
+		return derived(*this).begin();
 	}
 
 	// Allow const access for limited access (like asking people in a queue a question)
-	[[nodiscard]] ConstIterator begin() const noexcept { return _derived().begin(); }
+	[[nodiscard]] ConstIterator begin() const noexcept { return derived(*this).begin(); }
 
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	[[nodiscard]] Iterator end() noexcept {
-		return _derived().end();
+		return derived(*this).end();
 	}
 
 	// Allow const access for limited access (like asking people in a queue a question)
-	[[nodiscard]] ConstIterator end() const noexcept { return _derived().end(); }
+	[[nodiscard]] ConstIterator end() const noexcept { return derived(*this).end(); }
 
 	// Checks if a certain index is contained within the container
-	[[nodiscard]] bool isValid(const size_t index) const  { return _derived().isValid(index); }
+	[[nodiscard]] bool isValid(const size_t index) const  { return derived(*this).isValid(index); }
 
 	// Checks if a certain object is contained within the container
-	[[nodiscard]] bool contains(const TType& obj) const { return _derived().contains(obj); }
+	[[nodiscard]] bool contains(const TType& obj) const { return derived(*this).contains(obj); }
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
-	[[nodiscard]] bool contains(const TFrail<TUnfurledType>& obj) const { return _derived().contains(obj); }
+	[[nodiscard]] bool contains(const TFrail<TUnfurledType>& obj) const { return derived(*this).contains(obj); }
 #endif
 
 	// Find a certain element in the container
-	[[nodiscard]] size_t find(const TType& obj) const { return _derived().find(obj); }
+	[[nodiscard]] size_t find(const TType& obj) const { return derived(*this).find(obj); }
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
-	[[nodiscard]] size_t find(const TFrail<TUnfurledType>& obj) const { return _derived().find(obj); }
+	[[nodiscard]] size_t find(const TFrail<TUnfurledType>& obj) const { return derived(*this).find(obj); }
 #endif
 
 	// Get an element at a specified index
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	[[nodiscard]] TType& get(size_t index) {
-		return _derived().get(index);
+		return derived(*this).get(index);
 	}
 	// Get an element at a specified index
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	[[nodiscard]] const TType& get(size_t index) const {
-		return _derived().get(index);
+		return derived(*this).get(index);
 	}
 
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
@@ -266,72 +298,79 @@ struct TSequenceContainer {
 	}
 
 	// Fills container with n defaulted elements
-	void resize(size_t amt) { _derived().resize(amt); }
+	void resize(size_t amt) { derived(*this).resize(amt); }
 
 	// Fills container with TType& elements with size amt
-	void resize(size_t amt, std::function<TType(size_t)> func) { _derived().resize(amt, func); }
+	void resize(size_t amt, std::function<TType(size_t)> func) { derived(*this).resize(amt, func); }
 
 	// Reserves memory for n elements
 	ENABLE_FUNC_IF(bIsContiguousMemory)
 	void reserve(size_t amt) {
-		_derived().reserve(amt);
+		derived(*this).reserve(amt);
 	}
 
 	// Adds a defaulted element to the container
-	TType& push() { return _derived().push(); }
+	TType& push() { return derived(*this).push(); }
 	// Adds an element to the container, returning the index where it was added
-	size_t push(const TType& obj) { return _derived().push(obj); }
+	size_t push(const TType& obj) { return derived(*this).push(obj); }
 	// Adds an element to the container, returning the index where it was added
-	size_t push(TType&& obj) { return _derived().push(std::move(obj)); }
+	size_t push(TType&& obj) { return derived(*this).push(std::move(obj)); }
 	// Inserts an element at a specified index
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	void push(size_t index, const TType& obj) {
-		_derived().push(index, obj);
+		derived(*this).push(index, obj);
 	}
 	// Inserts an element at a specified index
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	void push(size_t index, TType&& obj) {
-		_derived().push(index, std::move(obj));
+		derived(*this).push(index, std::move(obj));
 	}
 
 	// Replaces an element at a specified index, and returns the original
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	void replace(size_t index, const TType& obj) {
-		_derived().push(index, obj);
+		derived(*this).push(index, obj);
 	}
 	// Replaces an element at a specified index, and returns the original
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	void replace(size_t index, TType&& obj) {
-		_derived().replace(index, std::move(obj));
+		derived(*this).replace(index, std::move(obj));
 	}
 
 	// Removes all elements from the container
-	void clear() { _derived().clear(); }
+	void clear() { derived(*this).clear(); }
 
 	// Removes the topmost element from the container
-	void pop() { _derived().pop(); }
+	void pop() { derived(*this).pop(); }
 	// Removes an element at the specified index
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	void popAt(size_t index) {
-		_derived().popAt(index);
+		derived(*this).popAt(index);
 	}
 	// Removes a certain object from the container
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
 	void pop(const TType& obj) {
-		_derived().pop(obj);
+		derived(*this).pop(obj);
 	}
 
 #ifdef USING_SIMPLEPTR
 	// Version of pop that guarantees raw pointer input
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	void pop(const TFrail<TUnfurledType>& obj) { _derived().pop(obj); }
+	void pop(const TFrail<TUnfurledType>& obj) { derived(*this).pop(obj); }
 #endif
 
 	// Moves an object at index from this to container otr
 	template <typename TOtherContainerType>
 	void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {
 		static_assert(!bIsLimitedAccess, "Limited Access Type cannot be transferred from");
-		_derived().transfer(otr, index);
+		derived(*this).transfer(otr, index);
+	}
+
+	// Appends another container to this current one
+	template <typename TOtherContainerType>
+	void append(const TSequenceContainer<TOtherContainerType>& otr) {
+		static_assert(!bIsLimitedSize, "Limited Size Type cannot be appended to");
+		derived(*this).append(otr);
 	}
 
 	void doFor(const size_t index, const std::function<void(TType&)>& func) {
@@ -375,19 +414,6 @@ struct TSequenceContainer {
 	}
 #endif
 
-protected:
-
-	static TContainerType& _derived(TSequenceContainer& self) {
-		return self._derived();
-	}
-
-	TContainerType& _derived() {
-		return *static_cast<TContainerType*>(this);
-	}
-
-	const TContainerType& _derived() const {
-		return *static_cast<const TContainerType*>(this);
-	}
 };
 
 // Designed to be a container with a key for indexing
@@ -396,7 +422,7 @@ protected:
 	std::enable_if_t<sutil::is_equality_comparable_v<typename TContainerTraits<TContainerType>::KeyType, typename TContainerTraits<TContainerType>::KeyType>, int> = 0
 >*/
 template <typename TContainerType>
-struct TAssociativeContainer {
+struct TAssociativeContainer : SContainer {
 
 	using Traits = TContainerTraits<TContainerType>;
 
@@ -411,85 +437,85 @@ struct TAssociativeContainer {
 #endif
 
 	// Returns the size of the container
-	[[nodiscard]] size_t getSize() const { return _derived().getSize(); }
+	[[nodiscard]] size_t getSize() const { return derived(*this).getSize(); }
 
 	// Returns if the container is empty
-	[[nodiscard]] bool isEmpty() const { return _derived().isEmpty(); }
+	[[nodiscard]] bool isEmpty() const { return derived(*this).isEmpty(); }
 
 	// Gets the first element possible, or the 'top' of the container
-	[[nodiscard]] TPair<TKeyType, const TValueType&> top() const { return _derived().top(); }
+	[[nodiscard]] TPair<TKeyType, const TValueType&> top() const { return derived(*this).top(); }
 
 	// Gets the last element possible, or the 'bottom' of the container
-	[[nodiscard]] TPair<TKeyType, const TValueType&> bottom() const { return _derived().bottom(); }
+	[[nodiscard]] TPair<TKeyType, const TValueType&> bottom() const { return derived(*this).bottom(); }
 
-	[[nodiscard]] Iterator begin() noexcept { return _derived().begin(); }
+	[[nodiscard]] Iterator begin() noexcept { return derived(*this).begin(); }
 
-	[[nodiscard]] ConstIterator begin() const noexcept { return _derived().begin(); }
+	[[nodiscard]] ConstIterator begin() const noexcept { return derived(*this).begin(); }
 
-	[[nodiscard]] Iterator end() noexcept { return _derived().end(); }
+	[[nodiscard]] Iterator end() noexcept { return derived(*this).end(); }
 
-	[[nodiscard]] ConstIterator end() const noexcept { return _derived().end(); }
+	[[nodiscard]] ConstIterator end() const noexcept { return derived(*this).end(); }
 
 	// Checks if a certain key is contained within the container
-	[[nodiscard]] bool isValid(const TKeyType& key) const { return _derived().isValid(key); }
+	[[nodiscard]] bool isValid(const TKeyType& key) const { return derived(*this).isValid(key); }
 
 	// Checks if a certain object is contained within the container
-	[[nodiscard]] bool contains(const TValueType& obj) const { return _derived().contains(obj); }
+	[[nodiscard]] bool contains(const TValueType& obj) const { return derived(*this).contains(obj); }
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
-	[[nodiscard]] bool contains(const TFrail<TUnfurledValueType>& obj) const { return _derived().contains(obj); }
+	[[nodiscard]] bool contains(const TFrail<TUnfurledValueType>& obj) const { return derived(*this).contains(obj); }
 #endif
 
 	// Find a certain element in the container
-	[[nodiscard]] TKeyType find(const TValueType& obj) const { return _derived().find(obj); }
+	[[nodiscard]] TKeyType find(const TValueType& obj) const { return derived(*this).find(obj); }
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
-	[[nodiscard]] TKeyType find(const TFrail<TUnfurledValueType>& obj) const { return _derived().find(obj); }
+	[[nodiscard]] TKeyType find(const TFrail<TUnfurledValueType>& obj) const { return derived(*this).find(obj); }
 #endif
 
 	// Get an element at a specified key
-	[[nodiscard]] TValueType& get(const TKeyType& key) { return _derived().get(key); }
+	[[nodiscard]] TValueType& get(const TKeyType& key) { return derived(*this).get(key); }
 	// Get an element at a specified key
-	[[nodiscard]] const TValueType& get(const TKeyType& key) const { return _derived().get(key); }
+	[[nodiscard]] const TValueType& get(const TKeyType& key) const { return derived(*this).get(key); }
 
 	// Fills container with TType& elements with size amt
-	void resize(size_t amt, std::function<TPair<TKeyType, TValueType>()> func) { _derived().resize(amt, func); }
+	void resize(size_t amt, std::function<TPair<TKeyType, TValueType>()> func) { derived(*this).resize(amt, func); }
 
 	// Reserves memory for n elements
 	ENABLE_FUNC_IF(bHasHashing)
-	void reserve(size_t amt) { _derived().reserve(amt); }
+	void reserve(size_t amt) { derived(*this).reserve(amt); }
 
 	// Adds a defaulted element to the container
-	TPair<TKeyType, const TValueType&> push() { return _derived().push(); }
+	TPair<TKeyType, const TValueType&> push() { return derived(*this).push(); }
 	// Adds a defaulted element at key to the container
-	TValueType& push(const TKeyType& key) { return _derived().push(key); }
+	TValueType& push(const TKeyType& key) { return derived(*this).push(key); }
 	// Adds an element value at key to the container
-	TValueType& push(const TKeyType& key, const TValueType& value) { return _derived().push(key, value); }
+	TValueType& push(const TKeyType& key, const TValueType& value) { return derived(*this).push(key, value); }
 	// Adds an element value at key to the container
-	TValueType& push(const TKeyType& key, TValueType&& value) { return _derived().push(key, std::move(value)); }
+	TValueType& push(const TKeyType& key, TValueType&& value) { return derived(*this).push(key, std::move(value)); }
 	// Adds an element to the container
-	void push(const TPair<TKeyType, TValueType>& pair) { _derived().push(pair); }
+	void push(const TPair<TKeyType, TValueType>& pair) { derived(*this).push(pair); }
 	// Adds an element to the container
-	void push(TPair<TKeyType, TValueType>&& pair) { _derived().push(std::move(pair)); }
+	void push(TPair<TKeyType, TValueType>&& pair) { derived(*this).push(std::move(pair)); }
 	// Replaces a specified element at key with another element
-	void replace(const TKeyType& key, const TValueType& obj) { _derived().replace(key, obj); }
+	void replace(const TKeyType& key, const TValueType& obj) { derived(*this).replace(key, obj); }
 	// Replaces a specified element at key with another element
-	void replace(const TKeyType& key, TValueType&& obj) { _derived().replace(key, std::move(obj)); }
+	void replace(const TKeyType& key, TValueType&& obj) { derived(*this).replace(key, std::move(obj)); }
 
 	// Removes all elements from the container
-	void clear() { _derived().clear(); }
+	void clear() { derived(*this).clear(); }
 
 	// Removes the topmost element from the container
-	void pop() { _derived().pop(); }
+	void pop() { derived(*this).pop(); }
 	// Removes an element at key from the container
-	void pop(const TKeyType& key) { _derived().pop(key); }
+	void pop(const TKeyType& key) { derived(*this).pop(key); }
 
 	// Moves an object at key from this to container otr
 	template <typename TOtherContainerType>
 	void transfer(TAssociativeContainer<TOtherContainerType>& otr, const TKeyType& key) {
-		_derived().transfer(otr, key);
+		derived(*this).transfer(otr, key);
 	}
 
 #ifdef USING_SIMPLEARCHIVE
@@ -513,19 +539,6 @@ struct TAssociativeContainer {
 	}
 #endif
 
-protected:
-
-	static TContainerType& _derived(TAssociativeContainer& self) {
-		return self._derived();
-	}
-
-	TContainerType& _derived() {
-		return *static_cast<TContainerType*>(this);
-	}
-
-	const TContainerType& _derived() const {
-		return *static_cast<const TContainerType*>(this);
-	}
 };
 
 // Designed to be a container without indexing
@@ -534,7 +547,7 @@ protected:
 	std::enable_if_t<sutil::is_equality_comparable_v<typename TContainerTraits<TContainerType>::Type, typename TContainerTraits<TContainerType>::Type>, int> = 0
 >*/
 template <typename TContainerType>
-struct TSingleAssociativeContainer {
+struct TSingleAssociativeContainer : SContainer {
 
 	using Traits = TContainerTraits<TContainerType>;
 
@@ -548,24 +561,24 @@ struct TSingleAssociativeContainer {
 #endif
 
 	// Returns the size of the container
-	[[nodiscard]] size_t getSize() const { return _derived().getSize(); }
+	[[nodiscard]] size_t getSize() const { return derived(*this).getSize(); }
 
 	// Returns if the container is empty
-	[[nodiscard]] bool isEmpty() const { return _derived().isEmpty(); }
+	[[nodiscard]] bool isEmpty() const { return derived(*this).isEmpty(); }
 
 	// Gets the first element possible, or the 'top' of the container
-	[[nodiscard]] const TType& top() const { return _derived().top(); }
+	[[nodiscard]] const TType& top() const { return derived(*this).top(); }
 
 	// Gets the last element possible, or the 'bottom' of the container
-	[[nodiscard]] const TType& bottom() const { return _derived().bottom(); }
+	[[nodiscard]] const TType& bottom() const { return derived(*this).bottom(); }
 
-	[[nodiscard]] Iterator begin() noexcept { return _derived().begin(); }
+	[[nodiscard]] Iterator begin() noexcept { return derived(*this).begin(); }
 
-	[[nodiscard]] ConstIterator begin() const noexcept { return _derived().begin(); }
+	[[nodiscard]] ConstIterator begin() const noexcept { return derived(*this).begin(); }
 
-	[[nodiscard]] Iterator end() noexcept { return _derived().end(); }
+	[[nodiscard]] Iterator end() noexcept { return derived(*this).end(); }
 
-	[[nodiscard]] ConstIterator end() const noexcept { return _derived().end(); }
+	[[nodiscard]] ConstIterator end() const noexcept { return derived(*this).end(); }
 
 	// Checks if a certain index is contained within the container
 	[[nodiscard]] bool contains(const size_t index) const {
@@ -573,59 +586,59 @@ struct TSingleAssociativeContainer {
 	}
 
 	// Checks if a certain object is contained within the container
-	[[nodiscard]] bool contains(const TType& obj) const { return _derived().contains(obj); }
+	[[nodiscard]] bool contains(const TType& obj) const { return derived(*this).contains(obj); }
 
 #ifdef USING_SIMPLEPTR
 	// Version of contains that guarantees raw pointer input
-	[[nodiscard]] bool contains(const TFrail<TUnfurledType>& obj) const { return _derived().contains(obj); }
+	[[nodiscard]] bool contains(const TFrail<TUnfurledType>& obj) const { return derived(*this).contains(obj); }
 #endif
 
 	// Fills container with n defaulted elements
-	void resize(size_t amt) { _derived().resize(amt); }
+	void resize(size_t amt) { derived(*this).resize(amt); }
 
 	// Fills container with TType& elements with size amt
-	void resize(size_t amt, std::function<TType()> func) { _derived().resize(amt, func); }
+	void resize(size_t amt, std::function<TType()> func) { derived(*this).resize(amt, func); }
 
 	// Reserves memory for n elements
 	ENABLE_FUNC_IF(bHasHashing)
-	void reserve(size_t amt) { _derived().reserve(amt); }
+	void reserve(size_t amt) { derived(*this).reserve(amt); }
 
 	// Adds a defaulted element to the container
-	const TType& push() { return _derived().push(); }
+	const TType& push() { return derived(*this).push(); }
 	// Adds an element to the container
-	void push(const TType& obj) { _derived().push(obj); }
+	void push(const TType& obj) { derived(*this).push(obj); }
 	// Adds an element to the container
-	void push(TType&& obj) { _derived().push(std::move(obj)); }
+	void push(TType&& obj) { derived(*this).push(std::move(obj)); }
 
 	// Replaces a specified element with another element
-	void replace(const TType& tgt, const TType& obj) { _derived().replace(tgt, obj); }
+	void replace(const TType& tgt, const TType& obj) { derived(*this).replace(tgt, obj); }
 	// Replaces a specified element with another element
-	void replace(const TType& tgt, TType&& obj) { _derived().replace(tgt, std::move(obj)); }
+	void replace(const TType& tgt, TType&& obj) { derived(*this).replace(tgt, std::move(obj)); }
 
 	// Removes all elements from the container
-	void clear() { _derived().clear(); }
+	void clear() { derived(*this).clear(); }
 
 	// Removes the topmost element from the container
-	void pop() { _derived().pop(); }
+	void pop() { derived(*this).pop(); }
 	// Removes an element from the container
-	void pop(const TType& obj) { _derived().pop(obj); }
+	void pop(const TType& obj) { derived(*this).pop(obj); }
 
 #ifdef USING_SIMPLEPTR
 	// Version of pop that guarantees raw pointer input, is O(n), unlike normal pop, due to comparisons
-	void pop(const TFrail<TUnfurledType>& obj) { _derived().pop(obj); }
+	void pop(const TFrail<TUnfurledType>& obj) { derived(*this).pop(obj); }
 #endif
 
 	// Moves an object from this to container otr
 	template <typename TOtherContainerType>
 	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, TType& obj) {
-		_derived().transfer(otr, obj);
+		derived(*this).transfer(otr, obj);
 	}
 
 #ifdef USING_SIMPLEPTR
 	// Version of transfer that guarantees raw pointer input
 	template <typename TOtherContainerType>
 	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, const TFrail<TUnfurledType>& obj) {
-		_derived().transfer(otr, obj);
+		derived(*this).transfer(otr, obj);
 	}
 #endif
 
@@ -650,17 +663,4 @@ struct TSingleAssociativeContainer {
 	}
 #endif
 
-protected:
-
-	static TContainerType& _derived(TSingleAssociativeContainer& self) {
-		return self._derived();
-	}
-
-	TContainerType& _derived() {
-		return *static_cast<TContainerType*>(this);
-	}
-
-	const TContainerType& _derived() const {
-		return *static_cast<const TContainerType*>(this);
-	}
 };

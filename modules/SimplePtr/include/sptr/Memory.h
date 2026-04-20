@@ -84,7 +84,7 @@ struct TUnfurled<TFrail<TType>> {
 /*
  * Determine whether TType is a managed pointer or not
  */
-
+//TODO: comparison by value
 namespace sstl {
 	template <typename TType>
 	constexpr bool is_managed_v = TUnfurled<TType>::isManaged;
