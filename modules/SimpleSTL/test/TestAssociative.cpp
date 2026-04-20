@@ -140,9 +140,61 @@ void transferTest(const std::string& containerName, TAssociativeContainer<TConta
 	}
 }
 
+template <typename TContainerType>
+void appendTest(const std::string& containerName, TAssociativeContainer<TContainerType>& container) {
+
+	using TType = typename TAssociativeContainer<TContainerType>::TValueType;
+
+	if constexpr (std::is_copy_constructible_v<TType>) {
+		{
+			std::cout << "Map Append Test" << std::endl;
+
+			container.push(MapEnum::TWO, TUnfurled<TType>::template create<SObject>((size_t)5, containerName));
+			container.push(MapEnum::THREE, TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
+			container.push(MapEnum::ONE, TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
+
+			TMap<MapEnum, TType> from;
+			from.push(MapEnum::FIVE, TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
+			from.push(MapEnum::SIX, TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
+			from.push(MapEnum::FOUR, TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
+
+			container.append(from);
+
+			for (const auto& obb : container) {
+				std::cout << "Key: " << enumToString(obb.first) << " ";
+				sstl::getUnfurled(obb.second)->print();
+			}
+
+			container.clear();
+		}
+
+		{
+			std::cout << "Priority Map Append Test" << std::endl;
+
+			container.push(MapEnum::TWO, TUnfurled<TType>::template create<SObject>((size_t)5, containerName));
+			container.push(MapEnum::THREE, TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
+			container.push(MapEnum::ONE, TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
+
+			TPriorityMap<MapEnum, TType> from;
+			from.push(MapEnum::FIVE, TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
+			from.push(MapEnum::SIX, TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
+			from.push(MapEnum::FOUR, TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
+
+			container.append(from);
+
+			for (const auto& obb : container) {
+				std::cout << "Key: " << enumToString(obb.first) << " ";
+				sstl::getUnfurled(obb.second)->print();
+			}
+
+			container.clear();
+		}
+	}
+}
+
 #define SINGLE_TEST(...) \
 	{ std::cout << std::endl << "--------------------" << std::endl << #__VA_ARGS__ " Test" << std::endl; } \
-	{ __VA_ARGS__ container; containerTest(#__VA_ARGS__, container); transferTest(#__VA_ARGS__, container); }
+	{ __VA_ARGS__ container; containerTest(#__VA_ARGS__, container); transferTest(#__VA_ARGS__, container); appendTest(#__VA_ARGS__, container); }
 
 #define DO_MAP_TEST(x) \
     std::cout << std::endl << std::endl << "******************** " #x " ********************" << std::endl << std::endl; \

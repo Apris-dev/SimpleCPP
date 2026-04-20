@@ -171,7 +171,21 @@ struct TMultiSet : TSingleAssociativeContainer<TMultiSet<TType>> {
 	}
 #endif
 
+	template <typename TOtherContainerType>
+	void append(const TSingleAssociativeContainer<TOtherContainerType>& otr) {
+#if CXX_VERSION >= 23
+		m_Container.insert_range(SContainer::getSubcontainer(otr));
+#else
+		m_Container.insert(SContainer::getSubcontainer(otr).begin(), SContainer::getSubcontainer(otr).end());
+#endif
+	}
+
 protected:
+
+	friend struct SContainer;
+
+	auto& getSubcontainer() { return m_Container; }
+	const auto& getSubcontainer() const { return m_Container; }
 
 	std::unordered_multiset<TType, TContainerHasher<TType>> m_Container;
 };

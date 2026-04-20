@@ -186,7 +186,21 @@ struct TPriorityMap : TAssociativeContainer<TPriorityMap<TKeyType, TValueType>> 
 		}
 	}
 
+	template <typename TOtherContainerType>
+	void append(const TAssociativeContainer<TOtherContainerType>& otr) {
+#if CXX_VERSION >= 23
+		m_Container.insert_range(SContainer::getSubcontainer(otr));
+#else
+		m_Container.insert(SContainer::getSubcontainer(otr).begin(), SContainer::getSubcontainer(otr).end());
+#endif
+	}
+
 protected:
+
+	friend struct SContainer;
+
+	auto& getSubcontainer() { return m_Container; }
+	const auto& getSubcontainer() const { return m_Container; }
 
 	std::map<TKeyType, TValueType> m_Container;
 };

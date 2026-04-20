@@ -80,9 +80,9 @@ int main() {
 #ifdef USING_SIMPLESTL
         const auto order = graph.buildExecutionOrder();
 
-        order.forEach([&](size_t, const size_t& node) {
+        for (const auto& node : order) {
             std::cout << graph.getNode(node)->name << " -> ";
-        });
+        }
 #else
         const auto order = graph.buildExecutionOrder();
 

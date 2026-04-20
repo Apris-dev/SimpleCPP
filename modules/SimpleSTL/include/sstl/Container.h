@@ -173,6 +173,12 @@ struct TContainerTraits;
 template <typename>
 struct TSequenceContainer;
 
+template <typename>
+struct TAssociativeContainer;
+
+template <typename>
+struct TSingleAssociativeContainer;
+
 // Allow subclasses to get each other's containers without public access
 struct SContainer {
 
@@ -189,12 +195,52 @@ protected:
 	}
 
 	template <typename TContainerType>
+	static TContainerType& derived(TAssociativeContainer<TContainerType>& self) {
+		return static_cast<TContainerType&>(self);
+	}
+
+	template <typename TContainerType>
+	static const TContainerType& derived(const TAssociativeContainer<TContainerType>& self) {
+		return static_cast<const TContainerType&>(self);
+	}
+
+	template <typename TContainerType>
+	static TContainerType& derived(TSingleAssociativeContainer<TContainerType>& self) {
+		return static_cast<TContainerType&>(self);
+	}
+
+	template <typename TContainerType>
+	static const TContainerType& derived(const TSingleAssociativeContainer<TContainerType>& self) {
+		return static_cast<const TContainerType&>(self);
+	}
+
+	template <typename TContainerType>
 	static decltype(auto) getSubcontainer(TSequenceContainer<TContainerType>& self) {
 		return derived(self).getSubcontainer();
 	}
 
 	template <typename TContainerType>
 	static decltype(auto) getSubcontainer(const TSequenceContainer<TContainerType>& self) {
+		return derived(self).getSubcontainer();
+	}
+
+	template <typename TContainerType>
+	static decltype(auto) getSubcontainer(TAssociativeContainer<TContainerType>& self) {
+		return derived(self).getSubcontainer();
+	}
+
+	template <typename TContainerType>
+	static decltype(auto) getSubcontainer(const TAssociativeContainer<TContainerType>& self) {
+		return derived(self).getSubcontainer();
+	}
+
+	template <typename TContainerType>
+	static decltype(auto) getSubcontainer(TSingleAssociativeContainer<TContainerType>& self) {
+		return derived(self).getSubcontainer();
+	}
+
+	template <typename TContainerType>
+	static decltype(auto) getSubcontainer(const TSingleAssociativeContainer<TContainerType>& self) {
 		return derived(self).getSubcontainer();
 	}
 
@@ -518,6 +564,12 @@ struct TAssociativeContainer : SContainer {
 		derived(*this).transfer(otr, key);
 	}
 
+	// Appends another container to this current one
+	template <typename TOtherContainerType>
+	void append(const TAssociativeContainer<TOtherContainerType>& otr) {
+		derived(*this).append(otr);
+	}
+
 #ifdef USING_SIMPLEARCHIVE
 	friend CInputArchive& operator>>(CInputArchive& inArchive, TAssociativeContainer& inValue) {
 		size_t size;
@@ -532,9 +584,9 @@ struct TAssociativeContainer : SContainer {
 
 	friend COutputArchive& operator<<(COutputArchive& inArchive, const TAssociativeContainer& inValue) {
 		inArchive << inValue.getSize();
-		inValue.forEach([&](TPair<TKeyType, const TValueType&> pair) {
+		for (const auto& pair : inValue) {
 			inArchive << pair;
-		});
+		}
 		return inArchive;
 	}
 #endif
@@ -641,6 +693,12 @@ struct TSingleAssociativeContainer : SContainer {
 		derived(*this).transfer(otr, obj);
 	}
 #endif
+
+	// Appends another container to this current one
+	template <typename TOtherContainerType>
+	void append(const TSingleAssociativeContainer<TOtherContainerType>& otr) {
+		derived(*this).append(otr);
+	}
 
 #ifdef USING_SIMPLEARCHIVE
 	friend CInputArchive& operator>>(CInputArchive& inArchive, TSingleAssociativeContainer& inValue) {

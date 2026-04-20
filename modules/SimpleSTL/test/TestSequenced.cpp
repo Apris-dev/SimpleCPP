@@ -153,6 +153,25 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 
 			container.clear();
 		}
+
+		{
+			std::cout << "Forward List Append Test" << std::endl;
+
+			container.push(TUnfurled<TType>::template create<SObject>((size_t)5, containerName));
+			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
+			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
+
+			TForwardList<TType> from;
+			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
+			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
+			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
+
+			container.append(from);
+
+			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
+
+			container.clear();
+		}
 	}
 }
 
