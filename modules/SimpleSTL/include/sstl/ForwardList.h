@@ -204,7 +204,11 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 
 	template <typename TOtherContainerType>
 	void append(const TSequenceContainer<TOtherContainerType>& otr) {
+#if CXX_VERSION >= 23
+		m_Container.prepend_range(SContainer::getSubcontainer(otr));
+#else
 		m_Container.insert_after(m_Container.before_begin(),  SContainer::getSubcontainer(otr).begin(), SContainer::getSubcontainer(otr).end());
+#endif
 	}
 
 protected:

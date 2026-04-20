@@ -212,7 +212,11 @@ struct TList : TSequenceContainer<TList<TType>> {
 
 	template <typename TOtherContainerType>
 	void append(const TSequenceContainer<TOtherContainerType>& otr) {
-		m_Container.insert(m_Container.end(),  SContainer::getSubcontainer(otr).begin(), SContainer::getSubcontainer(otr).end());
+#if CXX_VERSION >= 23
+		m_Container.append_range(SContainer::getSubcontainer(otr));
+#else
+		m_Container.insert(m_Container.end(), SContainer::getSubcontainer(otr).begin(), SContainer::getSubcontainer(otr).end());
+#endif
 	}
 
 protected:
