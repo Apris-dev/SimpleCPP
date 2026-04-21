@@ -68,16 +68,12 @@ struct TMultiSet : TSelfAssociativeContainer<TMultiSet<TType>> {
 		return m_Container.end();
 	}
 
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
-	bool contains(const TType& obj) const {
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	bool contains(const TOtherType& obj) const {
 		return ASSOCIATIVE_CONTAINS(m_Container, obj);
 	}
-
-#ifdef USING_SIMPLEPTR
-	bool contains(const TFrail<TUnfurledType>& obj) const {
-		return CONTAINS(m_Container, obj);
-	}
-#endif
 
 	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
 	void resize(const size_t amt) {
@@ -133,43 +129,25 @@ struct TMultiSet : TSelfAssociativeContainer<TMultiSet<TType>> {
 		m_Container.erase(m_Container.begin());
 	}
 
-	void pop(const TType& obj) {
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	void pop(const TOtherType& obj) {
 		m_Container.erase(obj);
 	}
 
-#ifdef USING_SIMPLEPTR
-	void pop(const TFrail<TUnfurledType>& obj) {
-		ERASE(m_Container, obj);
-	}
-#endif
-
 	// Moves an object from this to container otr
-	template <typename TOtherContainerType>
-	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, TType& obj) {
+	template <typename TOtherContainerType, typename TOtherType>
+	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, TOtherType& obj) {
 		if (!this->contains(obj)) return;
 		auto itr = m_Container.extract(m_Container.find(obj));
 		// Prefer move, but copy if not available
-		if constexpr (std::is_move_constructible_v<TType>) {
+		if constexpr (std::is_move_constructible_v<TOtherType>) {
 			otr.push(std::move(itr.value()));
 		} else {
 			otr.push(itr.value());
 		}
 	}
-
-#ifdef USING_SIMPLEPTR
-	// Version of transfer that guarantees raw pointer input
-	template <typename TOtherContainerType>
-	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, const TFrail<TUnfurledType>& obj) {
-		if (!this->contains(obj)) return;
-		auto itr = m_Container.extract(FIND(m_Container, obj));
-		// Prefer move, but copy if not available
-		if constexpr (std::is_move_constructible_v<TType>) {
-			otr.push(std::move(itr.value()));
-		} else {
-			otr.push(itr.value());
-		}
-	}
-#endif
 
 	template <typename TOtherContainerType>
 	void append(const TSelfAssociativeContainer<TOtherContainerType>& otr) {

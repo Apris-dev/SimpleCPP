@@ -8,6 +8,7 @@ template <typename TType>
 struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 
 	using Super = TSequenceContainer<TForwardList>;
+	using TPointerType = typename Super::TPointerType;
 
 #ifdef USING_SIMPLEPTR
 	using typename Super::TUnfurledType;
@@ -87,7 +88,7 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	bool contains(const TFrail<TUnfurledType>& obj) const {
+	bool contains(TPointerType obj) const {
 		// Will compare pointers, is always comparable
 		return CONTAINS(m_Container, obj);
 	}
@@ -99,7 +100,7 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	size_t find(const TFrail<TUnfurledType>& obj) const {
+	size_t find(TPointerType obj) const {
 		// Will compare pointers, is always comparable
 		return DISTANCE(m_Container, obj);
 	}
@@ -193,7 +194,7 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	void pop(const TFrail<TUnfurledType>& obj) {
+	void pop(TPointerType obj) {
 		// Will compare pointers, is always comparable
 		m_Container.erase_after(std::remove(m_Container.before_begin(), m_Container.end(), obj), m_Container.end());
 	}

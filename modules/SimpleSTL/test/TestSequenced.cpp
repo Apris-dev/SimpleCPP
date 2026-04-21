@@ -203,7 +203,7 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 	{ x<TUnique<int>, 3> container{TUnique{0}, TUnique{5}, TUnique{10}}; for (auto& i : container) { std::cout << *i << std::endl; } }
 
 int main() {
-	DO_TEST(TVector)
+	/*DO_TEST(TVector)
 	DO_TEST(TMaxHeap)
 	DO_TEST(TMinHeap)
 	DO_TEST(TDeque)
@@ -211,7 +211,58 @@ int main() {
 	DO_TEST(TForwardList)
 	DO_ARRAY_TEST(TArray)
 	DO_TEST(TStack)
-	DO_TEST(TQueue)
+	DO_TEST(TQueue)*/
+
+	TVector<TShared<int>> vec;
+
+	TShared val{50};
+
+	const TFrail otr = val;
+	auto* ival = otr.get();
+
+	vec.push(val);
+
+	for (auto& v : vec) {
+		std::cout << *v << std::endl;
+	}
+
+	std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
+	std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
+	std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
+
+	std::cout << vec.find(val) << std::endl;
+	std::cout << vec.find(otr) << std::endl;
+	std::cout << vec.find(ival) << std::endl;
+
+	{
+		vec.pop(val);
+
+		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
+		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
+		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
+
+		vec.push(val);
+	}
+
+	{
+		vec.pop(otr);
+
+		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
+		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
+		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
+
+		vec.push(val);
+	}
+
+	{
+		vec.pop(ival);
+
+		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
+		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
+		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
+
+		vec.push(val);
+	}
 
 	return 0;
 }

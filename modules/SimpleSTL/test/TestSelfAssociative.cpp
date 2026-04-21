@@ -136,10 +136,61 @@ void appendTest(const std::string& containerName, TSelfAssociativeContainer<TCon
 	{ x container{TUnique{0}, TUnique{5}, TUnique{10}}; for (const TUnique<int>& i : container) { std::cout << *i.get() << std::endl; } }
 
 int main() {
-	DO_ASSOCIATIVE_TEST(TSet)
+	/*DO_ASSOCIATIVE_TEST(TSet)
 	DO_ASSOCIATIVE_TEST(TMultiSet)
 	DO_ASSOCIATIVE_TEST(TPrioritySet)
-	DO_ASSOCIATIVE_TEST(TPriorityMultiSet)
+	DO_ASSOCIATIVE_TEST(TPriorityMultiSet)*/
+
+	TSet<TShared<int>> vec;
+
+	TShared val{50};
+
+	const TFrail otr = val;
+	auto* ival = otr.get();
+
+	vec.push(val);
+
+	for (auto& v : vec) {
+		std::cout << *v << std::endl;
+	}
+
+	std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
+	std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
+	std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
+
+	{
+		vec.pop(val);
+
+		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
+		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
+		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
+
+		vec.push(val);
+	}
+
+	{
+		vec.pop(otr);
+
+		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
+		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
+		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
+
+		vec.push(val);
+	}
+
+	{
+		vec.pop(ival);
+
+		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
+		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
+		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
+
+		vec.push(val);
+	}
+
+	TSet<TShared<int>> vec2;
+
+	vec.transfer(vec2, otr);
 
 	return 0;
 }

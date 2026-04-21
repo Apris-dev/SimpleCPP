@@ -28,11 +28,7 @@
 #include "sutil/Pair.h"
 
 #if CXX_VERSION >= 20
-#ifdef USING_MSVC
-#define FIND(c, x, ...) std::ranges::find(c, x, ##__VA_ARGS__)
-#else
-#define FIND(c, x, ...) std::ranges::find(c, x __VA_OPT__(,) __VA_ARGS__)
-#endif
+#define FIND(c, x, ...) std::ranges::find_if(c, [&x](const auto& v) { return v == x; })
 #define ERASE(c, x, ...) c.erase(FIND(c, x, __VA_ARGS__))
 #define ASSOCIATIVE_CONTAINS(c, x) c.contains(x)
 #define DISTANCE(c, x, ...) std::ranges::distance(c.begin(), FIND(c, x, __VA_ARGS__))
@@ -268,11 +264,6 @@ struct TSequenceContainer : SContainer {
 	constexpr static bool bIsForwardOnly = Traits::bIsForwardOnly;
 	constexpr static bool bIsLimitedSize = Traits::bIsLimitedSize;
 
-#ifdef USING_SIMPLEPTR
-	using TUnfurledType = typename TUnfurled<TType>::Type;
-	constexpr static bool bIsFrailType = std::is_same_v<TType, TFrail<TUnfurledType>>;
-#endif
-
 	// Returns the size of the container
 	[[nodiscard]] size_t getSize() const { return derived(*this).getSize(); }
 
@@ -340,22 +331,12 @@ struct TSequenceContainer : SContainer {
 	[[nodiscard]] bool isValid(const size_t index) const  { return derived(*this).isValid(index); }
 
 	// Checks if a certain object is contained within the container
-	[[nodiscard]] bool contains(const TType& obj) const { return derived(*this).contains(obj); }
-
-#ifdef USING_SIMPLEPTR
-	// Version of contains that guarantees raw pointer input
-	ENABLE_FUNC_IF(!bIsFrailType)
-	[[nodiscard]] bool contains(const TFrail<TUnfurledType>& obj) const { return derived(*this).contains(obj); }
-#endif
+	template <typename TOtherType>
+	[[nodiscard]] bool contains(const TOtherType& obj) const { return derived(*this).contains(obj); }
 
 	// Find a certain element in the container
-	[[nodiscard]] size_t find(const TType& obj) const { return derived(*this).find(obj); }
-
-#ifdef USING_SIMPLEPTR
-	// Version of contains that guarantees raw pointer input
-	ENABLE_FUNC_IF(!bIsFrailType)
-	[[nodiscard]] size_t find(const TFrail<TUnfurledType>& obj) const { return derived(*this).find(obj); }
-#endif
+	template <typename TOtherType>
+	[[nodiscard]] size_t find(const TOtherType& obj) const { return derived(*this).find(obj); }
 
 	// Get an element at a specified index
 	ENABLE_FUNC_IF(!bIsLimitedAccess)
@@ -428,16 +409,12 @@ struct TSequenceContainer : SContainer {
 		derived(*this).popAt(index);
 	}
 	// Removes a certain object from the container
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	void pop(const TType& obj) {
+	template <typename TOtherType, bool b = !bIsLimitedAccess,
+		std::enable_if_t<b, int> = 0
+	>
+	void pop(const TOtherType& obj) {
 		derived(*this).pop(obj);
 	}
-
-#ifdef USING_SIMPLEPTR
-	// Version of pop that guarantees raw pointer input
-	ENABLE_FUNC_IF(!bIsLimitedAccess && !bIsFrailType)
-	void pop(const TFrail<TUnfurledType>& obj) { derived(*this).pop(obj); }
-#endif
 
 	// Moves an object at index from this to container otr
 	template <typename TOtherContainerType>
@@ -514,11 +491,6 @@ struct TAssociativeContainer : SContainer {
 	using ConstReverseIterator = TVirtualIterator<typename Traits::ConstReverseIterator>;
 	constexpr static bool bHasHashing = Traits::bHasHashing;
 
-#ifdef USING_SIMPLEPTR
-	using TUnfurledValueType = typename TUnfurled<TValueType>::Type;
-	constexpr static bool bIsFrailType = std::is_same_v<TValueType, TFrail<TUnfurledValueType>>;
-#endif
-
 	// Returns the size of the container
 	[[nodiscard]] size_t getSize() const { return derived(*this).getSize(); }
 
@@ -551,22 +523,12 @@ struct TAssociativeContainer : SContainer {
 	[[nodiscard]] bool isValid(const TKeyType& key) const { return derived(*this).isValid(key); }
 
 	// Checks if a certain object is contained within the container
-	[[nodiscard]] bool contains(const TValueType& obj) const { return derived(*this).contains(obj); }
-
-#ifdef USING_SIMPLEPTR
-	// Version of contains that guarantees raw pointer input
-	ENABLE_FUNC_IF(!bIsFrailType)
-	[[nodiscard]] bool contains(const TFrail<TUnfurledValueType>& obj) const { return derived(*this).contains(obj); }
-#endif
+	template <typename TOtherValueType>
+	[[nodiscard]] bool contains(const TOtherValueType& obj) const { return derived(*this).contains(obj); }
 
 	// Find a certain element in the container
-	[[nodiscard]] TKeyType find(const TValueType& obj) const { return derived(*this).find(obj); }
-
-#ifdef USING_SIMPLEPTR
-	// Version of contains that guarantees raw pointer input
-	ENABLE_FUNC_IF(!bIsFrailType)
-	[[nodiscard]] TKeyType find(const TFrail<TUnfurledValueType>& obj) const { return derived(*this).find(obj); }
-#endif
+	template <typename TOtherValueType>
+	[[nodiscard]] TKeyType find(const TOtherValueType& obj) const { return derived(*this).find(obj); }
 
 	// Get an element at a specified key
 	[[nodiscard]] TValueType& get(const TKeyType& key) { return derived(*this).get(key); }
@@ -658,11 +620,6 @@ struct TSelfAssociativeContainer : SContainer {
 	constexpr static bool bHasHashing = Traits::bHasHashing;
 	constexpr static bool bIsForwardOnly = Traits::bIsForwardOnly;
 
-#ifdef USING_SIMPLEPTR
-	using TUnfurledType = typename TUnfurled<TType>::Type;
-	constexpr static bool bIsFrailType = std::is_same_v<TType, TFrail<TUnfurledType>>;
-#endif
-
 	// Returns the size of the container
 	[[nodiscard]] size_t getSize() const { return derived(*this).getSize(); }
 
@@ -696,18 +653,13 @@ struct TSelfAssociativeContainer : SContainer {
 	[[nodiscard]] ConstReverseIterator rend() const noexcept { return derived(*this).rend(); }
 
 	// Checks if a certain index is contained within the container
-	[[nodiscard]] bool contains(const size_t index) const {
+	[[nodiscard]] bool isValid(const size_t index) const {
 		return index > 0 && index < getSize();
 	}
 
 	// Checks if a certain object is contained within the container
-	[[nodiscard]] bool contains(const TType& obj) const { return derived(*this).contains(obj); }
-
-#ifdef USING_SIMPLEPTR
-	// Version of contains that guarantees raw pointer input
-	ENABLE_FUNC_IF(!bIsFrailType)
-	[[nodiscard]] bool contains(const TFrail<TUnfurledType>& obj) const { return derived(*this).contains(obj); }
-#endif
+	template <typename TOtherType>
+	[[nodiscard]] bool contains(const TOtherType& obj) const { return derived(*this).contains(obj); }
 
 	// Fills container with n defaulted elements
 	void resize(size_t amt) { derived(*this).resize(amt); }
@@ -737,29 +689,14 @@ struct TSelfAssociativeContainer : SContainer {
 	// Removes the topmost element from the container
 	void pop() { derived(*this).pop(); }
 	// Removes an element from the container
-	void pop(const TType& obj) { derived(*this).pop(obj); }
-
-#ifdef USING_SIMPLEPTR
-	// Version of pop that guarantees raw pointer input, is O(n), unlike normal pop, due to comparisons
-	ENABLE_FUNC_IF(!bIsFrailType)
-	void pop(const TFrail<TUnfurledType>& obj) { derived(*this).pop(obj); }
-#endif
+	template <typename TOtherType>
+	void pop(const TOtherType& obj) { derived(*this).pop(obj); }
 
 	// Moves an object from this to container otr
-	template <typename TOtherContainerType>
-	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, TType& obj) {
+	template <typename TOtherContainerType, typename TOtherType>
+	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, TOtherType& obj) {
 		derived(*this).transfer(otr, obj);
 	}
-
-#ifdef USING_SIMPLEPTR
-	// Version of transfer that guarantees raw pointer input
-	template <typename TOtherContainerType, bool b = !bIsFrailType,
-		std::enable_if_t<b, int> = 0
-	>
-	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, const TFrail<TUnfurledType>& obj) {
-		derived(*this).transfer(otr, obj);
-	}
-#endif
 
 	// Appends another container to this current one
 	template <typename TOtherContainerType>

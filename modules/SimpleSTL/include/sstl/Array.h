@@ -8,6 +8,7 @@ template <typename TType, size_t TSize>
 struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 	using Super = TSequenceContainer<TArray>;
+	using TPointerType = typename Super::TPointerType;
 
 #ifdef USING_SIMPLEPTR
 	using typename Super::TUnfurledType;
@@ -119,7 +120,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	bool contains(const TFrail<TUnfurledType>& obj) const {
+	bool contains(TPointerType obj) const {
 		// Will compare pointers, is always comparable
 		return CONTAINS(m_Container, obj);
 	}
@@ -131,7 +132,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	size_t find(const TFrail<TUnfurledType>& obj) const {
+	size_t find(TPointerType obj) const {
 		// Will compare pointers, is always comparable
 		return DISTANCE(m_Container, obj);
 	}
@@ -252,7 +253,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	void pop(const TFrail<TUnfurledType>& obj) {
+	void pop(TPointerType obj) {
 		if constexpr (sstl::is_managed_v<TType>) {
 			for (size_t index = 0; index < getSize(); ++index) {
 				// Will compare pointers, is always comparable

@@ -11,10 +11,6 @@ struct TPriorityMap : TAssociativeContainer<TPriorityMap<TKeyType, TValueType>> 
 
 	using Super = TAssociativeContainer<TPriorityMap>;
 
-#ifdef USING_SIMPLEPTR
-	using typename Super::TUnfurledValueType;
-#endif
-
 	TPriorityMap() = default;
 
 	template <typename TOtherValueType = TValueType,
@@ -87,36 +83,23 @@ struct TPriorityMap : TAssociativeContainer<TPriorityMap<TKeyType, TValueType>> 
 		return ASSOCIATIVE_CONTAINS(m_Container, key);
 	}
 
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TValueType>)
-	bool contains(const TValueType& obj) const {
-		return std::find_if(m_Container.cbegin(), m_Container.cend(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
+	template <typename TOtherValueType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TValueType, TOtherValueType>, int> = 0
+	>
+	bool contains(const TOtherValueType& obj) const {
+		return std::find_if(m_Container.begin(), m_Container.end(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
 			return pair.second == obj;
-		}) != m_Container.cend();
+		}) != m_Container.end();
 	}
 
-#ifdef USING_SIMPLEPTR
-	bool contains(const TFrail<TUnfurledValueType>& obj) const {
-		// Will compare pointers, is always comparable
-		return std::find_if(m_Container.cbegin(), m_Container.cend(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
-			return pair.second == obj;
-		}) != m_Container.cend();
-	}
-#endif
-
-	[[nodiscard]] TKeyType find(const TValueType& obj) const {
-		return std::find_if(m_Container.cbegin(), m_Container.cend(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
+	template <typename TOtherValueType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TValueType, TOtherValueType>, int> = 0
+	>
+	[[nodiscard]] TKeyType find(const TOtherValueType& obj) const {
+		return std::find_if(m_Container.begin(), m_Container.end(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
 			return pair.second == obj;
 		})->first;
 	}
-
-#ifdef USING_SIMPLEPTR
-	[[nodiscard]] TKeyType find(const TFrail<TUnfurledValueType>& obj) const {
-		// Will compare pointers, is always comparable
-		return std::find_if(m_Container.cbegin(), m_Container.cend(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
-			return pair.second == obj;
-		})->first;
-	}
-#endif
 
 	TValueType& get(const TKeyType& key) {
 		return m_Container.at(key);

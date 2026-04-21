@@ -9,10 +9,6 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 
 	using Super = TSequenceContainer<TVector>;
 
-#ifdef USING_SIMPLEPTR
-	using typename Super::TUnfurledType;
-#endif
-
 	_CONSTEXPR20 TVector() = default;
 
 	template <typename TOtherType = TType,
@@ -94,29 +90,19 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		return index > 0 && index < getSize();
 	}
 
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
-	bool contains(const TType& obj) const {
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
 
-#ifdef USING_SIMPLEPTR
-	bool contains(const TFrail<TUnfurledType>& obj) const {
-		// Will compare pointers, is always comparable
-		return CONTAINS(m_Container, obj);
-	}
-#endif
-
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
-	size_t find(const TType& obj) const {
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
-
-#ifdef USING_SIMPLEPTR
-	size_t find(const TFrail<TUnfurledType>& obj) const {
-		// Will compare pointers, is always comparable
-		return DISTANCE(m_Container, obj);
-	}
-#endif
 
 	TType& get(size_t index) {
 		return m_Container[index];
@@ -195,17 +181,12 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		m_Container.erase(m_Container.begin() + index);
 	}
 
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
-	void pop(const TType& obj) {
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	void pop(const TOtherType& obj) {
 		ERASE(m_Container, obj);
 	}
-
-#ifdef USING_SIMPLEPTR
-	void pop(const TFrail<TUnfurledType>& obj) {
-		// Will compare pointers, is always comparable
-		ERASE(m_Container, obj);
-	}
-#endif
 
 	template <typename TOtherContainerType>
 	void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {

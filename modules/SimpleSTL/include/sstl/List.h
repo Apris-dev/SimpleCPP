@@ -8,6 +8,7 @@ template <typename TType>
 struct TList : TSequenceContainer<TList<TType>> {
 
 	using Super = TSequenceContainer<TList>;
+	using TPointerType = typename Super::TPointerType;
 
 #ifdef USING_SIMPLEPTR
 	using typename Super::TUnfurledType;
@@ -95,7 +96,7 @@ struct TList : TSequenceContainer<TList<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	bool contains(const TFrail<TUnfurledType>& obj) const {
+	bool contains(TPointerType obj) const {
 		// Will compare pointers, is always comparable
 		return CONTAINS(m_Container, obj);
 	}
@@ -107,7 +108,7 @@ struct TList : TSequenceContainer<TList<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	size_t find(const TFrail<TUnfurledType>& obj) const {
+	size_t find(TPointerType obj) const {
 		// Will compare pointers, is always comparable
 		return DISTANCE(m_Container, obj);
 	}
@@ -201,7 +202,7 @@ struct TList : TSequenceContainer<TList<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	void pop(const TFrail<TUnfurledType>& obj) {
+	void pop(TPointerType obj) {
 		// Will compare pointers, is always comparable
 		ERASE(m_Container, obj);
 	}

@@ -7,6 +7,7 @@ template <typename TType>
 struct TStack : TSequenceContainer<TStack<TType>> {
 
 	using Super = TSequenceContainer<TStack>;
+	using TPointerType = typename Super::TPointerType;
 
 #ifdef USING_SIMPLEPTR
 	using typename Super::TUnfurledType;
@@ -58,7 +59,7 @@ struct TStack : TSequenceContainer<TStack<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	bool contains(const TFrail<TUnfurledType>& obj) const {
+	bool contains(TPointerType obj) const {
 		// Will compare pointers, is always comparable
 		return CONTAINS(m_Container, obj);
 	}
@@ -70,7 +71,7 @@ struct TStack : TSequenceContainer<TStack<TType>> {
 	}
 
 #ifdef USING_SIMPLEPTR
-	size_t find(const TFrail<TUnfurledType>& obj) const {
+	size_t find(TPointerType obj) const {
 		// Will compare pointers, is always comparable
 		return DISTANCE(m_Container, obj);
 	}
