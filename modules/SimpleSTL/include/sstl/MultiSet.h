@@ -9,9 +9,9 @@
 #endif
 
 template <typename TType>
-struct TMultiSet : TSingleAssociativeContainer<TMultiSet<TType>> {
+struct TMultiSet : TSelfAssociativeContainer<TMultiSet<TType>> {
 
-	using Super = TSingleAssociativeContainer<TMultiSet>;
+	using Super = TSelfAssociativeContainer<TMultiSet>;
 
 #ifdef USING_SIMPLEPTR
 	using typename Super::TUnfurledType;
@@ -145,7 +145,7 @@ struct TMultiSet : TSingleAssociativeContainer<TMultiSet<TType>> {
 
 	// Moves an object from this to container otr
 	template <typename TOtherContainerType>
-	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, TType& obj) {
+	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, TType& obj) {
 		if (!this->contains(obj)) return;
 		auto itr = m_Container.extract(m_Container.find(obj));
 		// Prefer move, but copy if not available
@@ -159,7 +159,7 @@ struct TMultiSet : TSingleAssociativeContainer<TMultiSet<TType>> {
 #ifdef USING_SIMPLEPTR
 	// Version of transfer that guarantees raw pointer input
 	template <typename TOtherContainerType>
-	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, const TFrail<TUnfurledType>& obj) {
+	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, const TFrail<TUnfurledType>& obj) {
 		if (!this->contains(obj)) return;
 		auto itr = m_Container.extract(FIND(m_Container, obj));
 		// Prefer move, but copy if not available
@@ -172,7 +172,7 @@ struct TMultiSet : TSingleAssociativeContainer<TMultiSet<TType>> {
 #endif
 
 	template <typename TOtherContainerType>
-	void append(const TSingleAssociativeContainer<TOtherContainerType>& otr) {
+	void append(const TSelfAssociativeContainer<TOtherContainerType>& otr) {
 #if CXX_VERSION >= 23
 		m_Container.insert_range(SContainer::getSubcontainer(otr));
 #else

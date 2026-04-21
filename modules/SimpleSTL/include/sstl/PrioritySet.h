@@ -7,9 +7,9 @@
 template <typename TType,
           std::enable_if_t<sutil::is_less_than_comparable_v<TType>, int> = 0
 >
-struct TPrioritySet : TSingleAssociativeContainer<TPrioritySet<TType>> {
+struct TPrioritySet : TSelfAssociativeContainer<TPrioritySet<TType>> {
 
-	using Super = TSingleAssociativeContainer<TPrioritySet>;
+	using Super = TSelfAssociativeContainer<TPrioritySet>;
 
 #ifdef USING_SIMPLEPTR
 	using typename Super::TUnfurledType;
@@ -154,7 +154,7 @@ struct TPrioritySet : TSingleAssociativeContainer<TPrioritySet<TType>> {
 
 	// Moves an object from this to container otr
 	template <typename TOtherContainerType>
-	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, TType& obj) {
+	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, TType& obj) {
 		if (!this->contains(obj)) return;
 		auto itr = m_Container.extract(m_Container.find(obj));
 		// Prefer move, but copy if not available
@@ -168,7 +168,7 @@ struct TPrioritySet : TSingleAssociativeContainer<TPrioritySet<TType>> {
 #ifdef USING_SIMPLEPTR
 	// Version of transfer that guarantees raw pointer input
 	template <typename TOtherContainerType>
-	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, const TFrail<TUnfurledType>& obj) {
+	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, const TFrail<TUnfurledType>& obj) {
 		if (!this->contains(obj)) return;
 		auto itr = m_Container.extract(FIND(m_Container, obj));
 		// Prefer move, but copy if not available
@@ -181,7 +181,7 @@ struct TPrioritySet : TSingleAssociativeContainer<TPrioritySet<TType>> {
 #endif
 
 	template <typename TOtherContainerType>
-	void append(const TSingleAssociativeContainer<TOtherContainerType>& otr) {
+	void append(const TSelfAssociativeContainer<TOtherContainerType>& otr) {
 #if CXX_VERSION >= 23
 		m_Container.insert_range(SContainer::getSubcontainer(otr));
 #else

@@ -181,7 +181,7 @@ template <typename>
 struct TAssociativeContainer;
 
 template <typename>
-struct TSingleAssociativeContainer;
+struct TSelfAssociativeContainer;
 
 // Allow subclasses to get each other's containers without public access
 struct SContainer {
@@ -209,12 +209,12 @@ protected:
 	}
 
 	template <typename TContainerType>
-	static TContainerType& derived(TSingleAssociativeContainer<TContainerType>& self) {
+	static TContainerType& derived(TSelfAssociativeContainer<TContainerType>& self) {
 		return static_cast<TContainerType&>(self);
 	}
 
 	template <typename TContainerType>
-	static const TContainerType& derived(const TSingleAssociativeContainer<TContainerType>& self) {
+	static const TContainerType& derived(const TSelfAssociativeContainer<TContainerType>& self) {
 		return static_cast<const TContainerType&>(self);
 	}
 
@@ -239,12 +239,12 @@ protected:
 	}
 
 	template <typename TContainerType>
-	static decltype(auto) getSubcontainer(TSingleAssociativeContainer<TContainerType>& self) {
+	static decltype(auto) getSubcontainer(TSelfAssociativeContainer<TContainerType>& self) {
 		return derived(self).getSubcontainer();
 	}
 
 	template <typename TContainerType>
-	static decltype(auto) getSubcontainer(const TSingleAssociativeContainer<TContainerType>& self) {
+	static decltype(auto) getSubcontainer(const TSelfAssociativeContainer<TContainerType>& self) {
 		return derived(self).getSubcontainer();
 	}
 
@@ -646,7 +646,7 @@ struct TAssociativeContainer : SContainer {
 	std::enable_if_t<sutil::is_equality_comparable_v<typename TContainerTraits<TContainerType>::Type, typename TContainerTraits<TContainerType>::Type>, int> = 0
 >*/
 template <typename TContainerType>
-struct TSingleAssociativeContainer : SContainer {
+struct TSelfAssociativeContainer : SContainer {
 
 	using Traits = TContainerTraits<TContainerType>;
 
@@ -747,7 +747,7 @@ struct TSingleAssociativeContainer : SContainer {
 
 	// Moves an object from this to container otr
 	template <typename TOtherContainerType>
-	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, TType& obj) {
+	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, TType& obj) {
 		derived(*this).transfer(otr, obj);
 	}
 
@@ -756,19 +756,19 @@ struct TSingleAssociativeContainer : SContainer {
 	template <typename TOtherContainerType, bool b = !bIsFrailType,
 		std::enable_if_t<b, int> = 0
 	>
-	void transfer(TSingleAssociativeContainer<TOtherContainerType>& otr, const TFrail<TUnfurledType>& obj) {
+	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, const TFrail<TUnfurledType>& obj) {
 		derived(*this).transfer(otr, obj);
 	}
 #endif
 
 	// Appends another container to this current one
 	template <typename TOtherContainerType>
-	void append(const TSingleAssociativeContainer<TOtherContainerType>& otr) {
+	void append(const TSelfAssociativeContainer<TOtherContainerType>& otr) {
 		derived(*this).append(otr);
 	}
 
 #ifdef USING_SIMPLEARCHIVE
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TSingleAssociativeContainer& inValue) {
+	friend CInputArchive& operator>>(CInputArchive& inArchive, TSelfAssociativeContainer& inValue) {
 		size_t size;
 		inArchive >> size;
 		inValue.resize(size, [&] {
@@ -779,7 +779,7 @@ struct TSingleAssociativeContainer : SContainer {
 		return inArchive;
 	}
 
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TSingleAssociativeContainer& inValue) {
+	friend COutputArchive& operator<<(COutputArchive& inArchive, const TSelfAssociativeContainer& inValue) {
 		inArchive << inValue.getSize();
 		for (const TType& obj : inValue) {
 			inArchive << obj;

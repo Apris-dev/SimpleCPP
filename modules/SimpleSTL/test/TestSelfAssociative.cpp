@@ -11,9 +11,9 @@
 #include "sstl/PrioritySet.h"
 
 template <typename TContainerType>
-void containerTest(const std::string& containerName, TSingleAssociativeContainer<TContainerType>& container) {
+void containerTest(const std::string& containerName, TSelfAssociativeContainer<TContainerType>& container) {
 
-	using TType = typename TSingleAssociativeContainer<TContainerType>::TType;
+	using TType = typename TSelfAssociativeContainer<TContainerType>::TType;
 
 	std::vector<size_t> vec;
 	for (size_t i = 0; i < 10; ++i) {
@@ -43,9 +43,9 @@ void containerTest(const std::string& containerName, TSingleAssociativeContainer
 }
 
 template <typename TContainerType>
-void transferTest(const std::string& containerName, TSingleAssociativeContainer<TContainerType>& container) {
+void transferTest(const std::string& containerName, TSelfAssociativeContainer<TContainerType>& container) {
 
-	using TType = typename TSingleAssociativeContainer<TContainerType>::TType;
+	using TType = typename TSelfAssociativeContainer<TContainerType>::TType;
 
 	{
 		std::cout << "Set Transfer Test" << std::endl;
@@ -77,9 +77,9 @@ void transferTest(const std::string& containerName, TSingleAssociativeContainer<
 }
 
 template <typename TContainerType>
-void appendTest(const std::string& containerName, TSingleAssociativeContainer<TContainerType>& container) {
+void appendTest(const std::string& containerName, TSelfAssociativeContainer<TContainerType>& container) {
 
-	using TType = typename TSingleAssociativeContainer<TContainerType>::TType;
+	using TType = typename TSelfAssociativeContainer<TContainerType>::TType;
 
 	if constexpr (std::is_copy_constructible_v<TType>) {
 		{
