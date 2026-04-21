@@ -11,10 +11,6 @@ struct TPriorityMultiSet : TSelfAssociativeContainer<TPriorityMultiSet<TType>> {
 
 	using Super = TSelfAssociativeContainer<TPriorityMultiSet>;
 
-#ifdef USING_SIMPLEPTR
-	using typename Super::TUnfurledType;
-#endif
-
 	TPriorityMultiSet() = default;
 
 	template <typename TOtherType = TType,
@@ -85,7 +81,11 @@ struct TPriorityMultiSet : TSelfAssociativeContainer<TPriorityMultiSet<TType>> {
 		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
 	>
 	bool contains(const TOtherType& obj) const {
-		return ASSOCIATIVE_CONTAINS(m_Container, obj);
+		if constexpr (std::is_same_v<TType, TOtherType>) {
+			return ASSOCIATIVE_CONTAINS(m_Container, obj);
+		} else {
+			return CONTAINS(m_Container, obj);
+		}
 	}
 
 	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
@@ -142,14 +142,23 @@ struct TPriorityMultiSet : TSelfAssociativeContainer<TPriorityMultiSet<TType>> {
 		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
 	>
 	void pop(const TOtherType& obj) {
-		m_Container.erase(obj);
+		if constexpr (std::is_same_v<TType, TOtherType>) {
+			m_Container.erase(obj);
+		} else {
+			ERASE(m_Container, obj);
+		}
 	}
 
 	// Moves an object from this to container otr
 	template <typename TOtherContainerType, typename TOtherType>
 	void transfer(TSelfAssociativeContainer<TOtherContainerType>& otr, TOtherType& obj) {
 		if (!this->contains(obj)) return;
-		auto itr = m_Container.extract(m_Container.find(obj));
+		typename decltype(m_Container)::node_type itr;
+		if constexpr (std::is_same_v<TType, TOtherType>) {
+			itr = m_Container.extract(m_Container.find(obj));
+		} else {
+			itr = m_Container.extract(FIND(m_Container, obj));
+		}
 		// Prefer move, but copy if not available
 		if constexpr (std::is_move_constructible_v<TOtherType>) {
 			otr.push(std::move(itr.value()));
