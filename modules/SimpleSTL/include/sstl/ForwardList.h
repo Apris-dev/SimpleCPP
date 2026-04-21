@@ -8,11 +8,6 @@ template <typename TType>
 struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 
 	using Super = TSequenceContainer<TForwardList>;
-	using TPointerType = typename Super::TPointerType;
-
-#ifdef USING_SIMPLEPTR
-	using typename Super::TUnfurledType;
-#endif
 
 	TForwardList() = default;
 
@@ -82,29 +77,19 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 		return index > 0 && index < getSize();
 	}
 
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
-	bool contains(const TType& obj) const {
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
 
-#ifdef USING_SIMPLEPTR
-	bool contains(TPointerType obj) const {
-		// Will compare pointers, is always comparable
-		return CONTAINS(m_Container, obj);
-	}
-#endif
-
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
-	size_t find(const TType& obj) const {
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
-
-#ifdef USING_SIMPLEPTR
-	size_t find(TPointerType obj) const {
-		// Will compare pointers, is always comparable
-		return DISTANCE(m_Container, obj);
-	}
-#endif
 
 	TType& get(size_t index) {
 		auto itr = m_Container.begin();
@@ -188,17 +173,12 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 		m_Container.erase_after(itr);
 	}
 
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
-	void pop(const TType& obj) {
-		m_Container.erase_after(std::remove(m_Container.before_begin(), m_Container.end(), obj), m_Container.end());
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	void pop(const TOtherType& obj) {
+		ERASE(m_Container, obj);
 	}
-
-#ifdef USING_SIMPLEPTR
-	void pop(TPointerType obj) {
-		// Will compare pointers, is always comparable
-		m_Container.erase_after(std::remove(m_Container.before_begin(), m_Container.end(), obj), m_Container.end());
-	}
-#endif
 
 	template <typename TOtherContainerType>
 	void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {

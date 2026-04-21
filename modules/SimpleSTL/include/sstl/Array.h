@@ -8,12 +8,7 @@ template <typename TType, size_t TSize>
 struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 	using Super = TSequenceContainer<TArray>;
-	using TPointerType = typename Super::TPointerType;
 
-#ifdef USING_SIMPLEPTR
-	using typename Super::TUnfurledType;
-#endif
-	
 	_CONSTEXPR20 TArray() {
 		m_IsPopulated.fill(false);
 	}
@@ -114,29 +109,19 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return m_IsPopulated[index];
 	}
 
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
-	bool contains(const TType& obj) const {
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
 
-#ifdef USING_SIMPLEPTR
-	bool contains(TPointerType obj) const {
-		// Will compare pointers, is always comparable
-		return CONTAINS(m_Container, obj);
-	}
-#endif
-
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
-	size_t find(const TType& obj) const {
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
-
-#ifdef USING_SIMPLEPTR
-	size_t find(TPointerType obj) const {
-		// Will compare pointers, is always comparable
-		return DISTANCE(m_Container, obj);
-	}
-#endif
 
 	TType& get(size_t index) {
 		return m_Container[index];
@@ -243,29 +228,16 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		throw std::runtime_error("No element at index to be popped!");
 	}
 
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
-	void pop(const TType& obj) {
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	void pop(const TOtherType& obj) {
 		for (size_t index = 0; index < getSize(); ++index) {
 			if (m_Container[index] == obj) {
 				m_IsPopulated[index] = false;
 			}
 		}
 	}
-
-#ifdef USING_SIMPLEPTR
-	void pop(TPointerType obj) {
-		if constexpr (sstl::is_managed_v<TType>) {
-			for (size_t index = 0; index < getSize(); ++index) {
-				// Will compare pointers, is always comparable
-				if (m_Container[index].get() == obj) {
-					m_IsPopulated[index] = false;
-				}
-			}
-		} else {
-			pop(*obj);
-		}
-	}
-#endif
 
 	template <typename TOtherContainerType>
 	void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {

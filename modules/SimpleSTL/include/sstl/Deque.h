@@ -8,11 +8,6 @@ template <typename TType>
 struct TDeque : TSequenceContainer<TDeque<TType>> {
 
 	using Super = TSequenceContainer<TDeque>;
-	using TPointerType = typename Super::TPointerType;
-
-#ifdef USING_SIMPLEPTR
-	using typename Super::TUnfurledType;
-#endif
 
 	TDeque() = default;
 
@@ -90,29 +85,19 @@ struct TDeque : TSequenceContainer<TDeque<TType>> {
 		return index > 0 && index < getSize();
 	}
 
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
-	bool contains(const TType& obj) const {
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
 
-#ifdef USING_SIMPLEPTR
-	bool contains(TPointerType obj) const {
-		// Will compare pointers, is always comparable
-		return CONTAINS(m_Container, obj);
-	}
-#endif
-
-	ENABLE_FUNC_IF(sutil::is_equality_comparable_v<TType>)
-	size_t find(const TType& obj) const {
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
-
-#ifdef USING_SIMPLEPTR
-	size_t find(TPointerType obj) const {
-		// Will compare pointers, is always comparable
-		return DISTANCE(m_Container, obj);
-	}
-#endif
 
 	TType& get(size_t index) {
 		return m_Container[index];
@@ -186,20 +171,12 @@ struct TDeque : TSequenceContainer<TDeque<TType>> {
 		m_Container.erase(m_Container.begin() + index);
 	}
 
-	void pop(const TType& obj) {
-		if constexpr (sutil::is_equality_comparable_v<TType>) {
-			ERASE(m_Container, obj);
-		} else {
-			throw std::runtime_error("Type is not comparable!");
-		}
-	}
-
-#ifdef USING_SIMPLEPTR
-	void pop(TPointerType obj) {
-		// Will compare pointers, is always comparable
+	template <typename TOtherType,
+		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
+	>
+	void pop(const TOtherType& obj) {
 		ERASE(m_Container, obj);
 	}
-#endif
 
 	template <typename TOtherContainerType>
 	void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {
