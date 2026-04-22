@@ -108,13 +108,13 @@ void transferTest(const std::string& containerName, TAssociativeContainer<TConta
 		std::cout << "Pre Transfer" << std::endl;
 		std::cout << "from:" << std::endl;
 		for (const auto& obb : from) {
-			std::cout << "Key: " << enumToString(obb.first) << " ";
-			sstl::getUnfurled(obb.second)->print();
+			std::cout << "Key: " << enumToString(obb.first()) << " ";
+			sstl::getUnfurled(obb.second())->print();
 		}
 		std::cout << "to:" << std::endl;
 		for (const auto& obb : container) {
-			std::cout << "Key: " << enumToString(obb.first) << " ";
-			sstl::getUnfurled(obb.second)->print();
+			std::cout << "Key: " << enumToString(obb.first()) << " ";
+			sstl::getUnfurled(obb.second())->print();
 		}
 
 		assert(from.getSize() == 1);
@@ -124,13 +124,13 @@ void transferTest(const std::string& containerName, TAssociativeContainer<TConta
 		std::cout << "Post Transfer" << std::endl;
 		std::cout << "from:" << std::endl;
 		for (const auto& obb : from) {
-			std::cout << "Key: " << enumToString(obb.first) << " ";
-			sstl::getUnfurled(obb.second)->print();
+			std::cout << "Key: " << enumToString(obb.first()) << " ";
+			sstl::getUnfurled(obb.second())->print();
 		}
 		std::cout << "to:" << std::endl;
 		for (const auto& obb : container) {
-			std::cout << "Key: " << enumToString(obb.first) << " ";
-			sstl::getUnfurled(obb.second)->print();
+			std::cout << "Key: " << enumToString(obb.first()) << " ";
+			sstl::getUnfurled(obb.second())->print();
 		}
 		std::cout << std::endl;
 
@@ -161,8 +161,8 @@ void appendTest(const std::string& containerName, TAssociativeContainer<TContain
 			container.append(from);
 
 			for (const auto& obb : container) {
-				std::cout << "Key: " << enumToString(obb.first) << " ";
-				sstl::getUnfurled(obb.second)->print();
+				std::cout << "Key: " << enumToString(obb.first()) << " ";
+				sstl::getUnfurled(obb.second())->print();
 			}
 
 			container.clear();
@@ -183,8 +183,8 @@ void appendTest(const std::string& containerName, TAssociativeContainer<TContain
 			container.append(from);
 
 			for (const auto& obb : container) {
-				std::cout << "Key: " << enumToString(obb.first) << " ";
-				sstl::getUnfurled(obb.second)->print();
+				std::cout << "Key: " << enumToString(obb.first()) << " ";
+				sstl::getUnfurled(obb.second())->print();
 			}
 
 			container.clear();
@@ -203,16 +203,16 @@ void appendTest(const std::string& containerName, TAssociativeContainer<TContain
 	SINGLE_TEST(x<MapEnum, TUnique<Parent>>) \
 	SINGLE_TEST(x<MapEnum, TUnique<Abstract>>) \
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Constructor Test" << std::endl; } \
-	{ x container{TPair{MapEnum::NONE, 0}, TPair{MapEnum::ONE, 5}, TPair{MapEnum::TWO, 10}}; for (const auto& pair : container) { std::cout << pair.second << std::endl; } } \
+	{ x container{TPair{MapEnum::NONE, 0}, TPair{MapEnum::ONE, 5}, TPair{MapEnum::TWO, 10}}; for (const auto& pair : container) { std::cout << pair.second() << std::endl; } } \
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Unique Constructor Test" << std::endl; } \
-	{ x container{TPair{MapEnum::NONE, TUnique{0}}, TPair{MapEnum::ONE, TUnique{5}}, TPair{MapEnum::TWO, TUnique{10}}}; for (const auto& pair : container) { std::cout << *pair.second.get() << std::endl; } } \
+	{ x container{TPair{MapEnum::NONE, TUnique{0}}, TPair{MapEnum::ONE, TUnique{5}}, TPair{MapEnum::TWO, TUnique{10}}}; for (const auto& pair : container) { std::cout << *pair.second().get() << std::endl; } } \
 
 
 int main() {
-	/*DO_MAP_TEST(TMap)
+	DO_MAP_TEST(TMap)
 	DO_MAP_TEST(TMultiMap)
 	DO_MAP_TEST(TPriorityMap)
-	DO_MAP_TEST(TPriorityMultiMap)*/
+	DO_MAP_TEST(TPriorityMultiMap)
 
 	TMap<int, TShared<int>> vec;
 

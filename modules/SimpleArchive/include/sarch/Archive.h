@@ -91,8 +91,8 @@ public:
 
 	template <typename TKeyType, typename TValueType>
 	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TPair<TKeyType, TValueType>& pair) {
-		inArchive << pair.first;
-		inArchive << pair.second;
+		inArchive << pair.first();
+		inArchive << pair.second();
 		return inArchive;
 	}
 
@@ -196,8 +196,8 @@ public:
 
 	template <typename TKeyType, typename TValueType>
 	friend CInputArchive& operator>>(CInputArchive& inArchive, TPair<TKeyType, TValueType>& pair) {
-		inArchive >> pair.first;
-		inArchive >> pair.second;
+		inArchive >> pair.first();
+		inArchive >> pair.second();
 		return inArchive;
 	}
 };
@@ -215,7 +215,7 @@ protected:
 public:
 
 	virtual ~COutputArchive() = default;
-	
+
 	template <typename TType,
 		std::enable_if_t<std::is_arithmetic_v<TType>, int> = 0
 	>
@@ -248,8 +248,8 @@ public:
 
 	template <typename TKeyType, typename TValueType>
 	friend COutputArchive& operator<<(COutputArchive& inArchive, const TPair<TKeyType, TValueType>& pair) {
-		inArchive << pair.first;
-		inArchive << pair.second;
+		inArchive << pair.first();
+		inArchive << pair.second();
 		return inArchive;
 	}
 

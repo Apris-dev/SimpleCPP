@@ -82,7 +82,8 @@ struct TVirtualIterator {
 		if constexpr (ContainerType == EContainerType::ASSOCIATIVE) {
 			using KeyType = typename Traits::KeyType;
 			using ValueType = typename Traits::ValueType;
-			return reinterpret_cast<TPair<KeyType, ValueType>&>(*itr);
+			constexpr static bool isConst = std::is_const_v<std::remove_reference_t<decltype(*itr)>>;
+			return reinterpret_cast<std::conditional_t<isConst, const TPair<KeyType, ValueType>&, TPair<KeyType, ValueType>&>>(*itr);
 		} else {
 			return *itr;
 		}

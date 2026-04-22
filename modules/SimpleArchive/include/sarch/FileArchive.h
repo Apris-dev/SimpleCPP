@@ -80,100 +80,6 @@ public:
 		return res;
 	}
 
-	void close() {
-		if (isOpen()) {
-			fclose(mFile);
-			mIsOpen = false;
-		}
-	}
-
-protected:
-
-	// The BOM might cause issues with certain interpreters
-	static void removeBOM(char* inData, const size_t inSize) {
-		if (inSize <= 3) return;
-		constexpr static unsigned char BOM[] = { 0xEF, 0xBB, 0xBF };
-		if (!memcmp(inData, BOM, 3))
-			memset(inData, ' ', 3);
-	}
-
-	// Remove the end of this line, assumes only a single line was given
-	static void removeEOL(char* inData, const size_t inSize) {
-		if (inSize == 0) return;
-		constexpr static unsigned char EOL[] = LINE_ENDING;
-		if (!memcmp(inData + inSize - 1, EOL, 1))
-			memset(inData + inSize - 1, ' ', 1);
-	}
-
-	FILE* mFile = nullptr;
-	bool mIsOpen = false;
-
-};
-
-// An archive that can process files, uses standard c since it is faster
-template <EOpenType TOpenType>
-class CBinaryFileArchive : public CBaseFileArchive<TOpenType>, public CArchive {
-
-public:
-
-	using CBaseFileArchive<TOpenType>::CBaseFileArchive;
-
-protected:
-
-	virtual size_t write(const void* inValue, const size_t inElementSize, const size_t inCount) override {
-		assert(this->isOpen());
-		return fwrite(inValue, inElementSize, inCount, this->mFile);
-	}
-
-	virtual size_t read(void* inValue, size_t const inElementSize, const size_t inCount) override {
-		assert(this->isOpen());
-		return fread(inValue, inElementSize, inCount, this->mFile);
-	}
-
-};
-
-template <EOpenType TOpenType>
-class CStringFileArchive : public CBaseFileArchive<TOpenType>, public CBaseStringArchive {
-
-public:
-
-	using CBaseFileArchive<TOpenType>::CBaseFileArchive;
-
-	[[nodiscard]] virtual std::string get() const override {
-		auto loc = ftell(this->mFile);
-		auto res = readFile();
-		fseek(this->mFile, loc, SEEK_SET);
-		return res;
-	}
-
-	[[nodiscard]] std::string readLine(const bool inRemoveBOM = true) const {
-		assert(this->isOpen());
-
-		std::string line;
-		char buffer[256];
-
-		while (fgets(buffer, sizeof(buffer), this->mFile)) {
-			line += buffer;
-
-			// Stop if we read a full line
-			if (line.back() == '\n')
-				break;
-		}
-
-		if (inRemoveBOM) this->removeBOM(line.data(), line.size());
-
-		this->removeEOL(line.data(), line.size());
-
-		return line;
-	}
-
-	// Char has size of 1
-	void writeLine(const std::string& string) const {
-		assert(this->isOpen());
-		const std::string line = string + LINE_ENDING;
-		fwrite(line.data(), 1, line.size(), this->mFile);
-	}
-
 	// Function to read from entire file with any type
 	template <typename TType, class TAlloc = std::allocator<TType>>
 #ifdef USING_SIMPLESTL
@@ -220,6 +126,102 @@ public:
 		fwrite(vector.data(), sizeof(TType), vector.size(), this->mFile);
 	}
 #endif
+
+	void close() {
+		if (isOpen()) {
+			fclose(mFile);
+			mIsOpen = false;
+		}
+	}
+
+protected:
+
+	// The BOM might cause issues with certain interpreters
+	template <typename TDataType>
+	static void removeBOM(TDataType* inData, const size_t inSize) {
+		if (inSize <= 3) return;
+		constexpr static unsigned char BOM[] = { 0xEF, 0xBB, 0xBF };
+		if (!memcmp(inData, BOM, 3))
+			memset(inData, ' ', 3);
+	}
+
+	// Remove the end of this line, assumes only a single line was given
+	template <typename TDataType>
+	static void removeEOL(TDataType* inData, const size_t inSize) {
+		if (inSize == 0) return;
+		constexpr static unsigned char EOL[] = LINE_ENDING;
+		if (!memcmp(inData + inSize - 1, EOL, 1))
+			memset(inData + inSize - 1, ' ', 1);
+	}
+
+	FILE* mFile = nullptr;
+	bool mIsOpen = false;
+
+};
+
+// An archive that can process files, uses standard c since it is faster
+template <EOpenType TOpenType>
+class CBinaryFileArchive : public CBaseFileArchive<TOpenType>, public CArchive {
+
+public:
+
+	using CBaseFileArchive<TOpenType>::CBaseFileArchive;
+
+protected:
+
+	virtual size_t write(const void* inValue, const size_t inElementSize, const size_t inCount) override {
+		assert(this->isOpen());
+		return fwrite(inValue, inElementSize, inCount, this->mFile);
+	}
+
+	virtual size_t read(void* inValue, size_t const inElementSize, const size_t inCount) override {
+		assert(this->isOpen());
+		return fread(inValue, inElementSize, inCount, this->mFile);
+	}
+
+};
+
+template <EOpenType TOpenType>
+class CStringFileArchive : public CBaseFileArchive<TOpenType>, public CBaseStringArchive {
+
+public:
+
+	using CBaseFileArchive<TOpenType>::CBaseFileArchive;
+
+	[[nodiscard]] virtual std::string get() const override {
+		auto loc = ftell(this->mFile);
+		auto res = this->readFile();
+		fseek(this->mFile, loc, SEEK_SET);
+		return res;
+	}
+
+	[[nodiscard]] std::string readLine(const bool inRemoveBOM = true) const {
+		assert(this->isOpen());
+
+		std::string line;
+		char buffer[256];
+
+		while (fgets(buffer, sizeof(buffer), this->mFile)) {
+			line += buffer;
+
+			// Stop if we read a full line
+			if (line.back() == '\n')
+				break;
+		}
+
+		if (inRemoveBOM) this->removeBOM(line.data(), line.size());
+
+		this->removeEOL(line.data(), line.size());
+
+		return line;
+	}
+
+	// Char has size of 1
+	void writeLine(const std::string& string) const {
+		assert(this->isOpen());
+		const std::string line = string + LINE_ENDING;
+		fwrite(line.data(), 1, line.size(), this->mFile);
+	}
 
 protected:
 
