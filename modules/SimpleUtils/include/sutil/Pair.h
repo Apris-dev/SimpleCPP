@@ -197,13 +197,19 @@ struct TPair {
 	    return lhs._pair.first == rhs._pair.first && lhs._pair.second == rhs._pair.second;
 	}
 
-	decltype(auto) first() { return _pair.first; }
-	decltype(auto) key() { return _pair.first; }
-	decltype(auto) index() { return _pair.first; }
+	auto& first() { return _pair.first; }
+	const auto& first() const { return _pair.first; }
+	auto& key() { return _pair.first; }
+	const auto& key() const { return _pair.first; }
+	auto& index() { return _pair.first; }
+	const auto& index() const { return _pair.first; }
 
-	decltype(auto) second() { return _pair.second; }
-	decltype(auto) value() { return _pair.second; }
-	decltype(auto) object() { return _pair.second; }
+	auto& second() { return _pair.second; }
+	const auto& second() const { return _pair.second; }
+	auto& value() { return _pair.second; }
+	const auto& value() const { return _pair.second; }
+	auto& object() { return _pair.second; }
+	const auto& object() const { return _pair.second; }
 
 private:
 
