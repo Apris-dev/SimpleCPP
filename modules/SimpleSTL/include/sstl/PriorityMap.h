@@ -18,13 +18,13 @@ struct TPriorityMap : TAssociativeContainer<TPriorityMap<TKeyType, TValueType>> 
 	>
 	TPriorityMap(TInitializerList<TPair<TKeyType, TValueType>> init) {
 		for (auto& pair : init) {
-			m_Container.emplace(pair.first, pair.second);
+			m_Container.emplace(pair.first(), pair.second());
 		}
 	}
 
 	template <typename... TPairs>
 	explicit TPriorityMap(TPairs&&... args) {
-		(m_Container.emplace(std::forward<typename TPairs::KeyType>(args.first), std::forward<typename TPairs::ValueType>(args.second)), ...);
+		(m_Container.emplace(std::forward<typename TPairs::KeyType>(args.first()), std::forward<typename TPairs::ValueType>(args.second())), ...);
 	}
 
 	TPriorityMap(const std::map<TKeyType, TValueType>& otr): m_Container(otr) {}
@@ -112,7 +112,7 @@ struct TPriorityMap : TAssociativeContainer<TPriorityMap<TKeyType, TValueType>> 
 	void resize(const size_t amt, std::function<TPair<TKeyType, TValueType>()> func) {
 		for (size_t i = getSize(); i < amt; ++i) {
 			TPair<TKeyType, TValueType> pair = func();
-			m_Container.emplace(std::forward<TKeyType>(pair.first), std::forward<TValueType>(pair.second));
+			m_Container.emplace(std::forward<TKeyType>(pair.first()), std::forward<TValueType>(pair.second()));
 		}
 	}
 
@@ -142,12 +142,12 @@ struct TPriorityMap : TAssociativeContainer<TPriorityMap<TKeyType, TValueType>> 
 
 	ENABLE_FUNC_IF(std::is_copy_constructible_v<TValueType>)
 	void push(const TPair<TKeyType, TValueType>& pair) {
-		m_Container.emplace(pair.first, pair.second);
+		m_Container.emplace(pair.first(), pair.second());
 	}
 
 	ENABLE_FUNC_IF(std::is_move_constructible_v<TValueType>)
 	void push(TPair<TKeyType, TValueType>&& pair) {
-		m_Container.emplace(std::move(pair.first), std::move(pair.second));
+		m_Container.emplace(std::move(pair.first()), std::move(pair.second()));
 	}
 
 	ENABLE_FUNC_IF(std::is_copy_constructible_v<TValueType>)
@@ -208,11 +208,12 @@ template <typename TKeyType, typename TValueType>
 struct TContainerTraits<TPriorityMap<TKeyType, TValueType>> {
 	using KeyType = TKeyType;
 	using ValueType = TValueType;
-	using ContainerType = std::map<TKeyType, TValueType>;
-	using Iterator = typename ContainerType::iterator;
-	using ReverseIterator = typename ContainerType::reverse_iterator;
-	using ConstIterator = typename ContainerType::const_iterator;
-	using ConstReverseIterator = typename ContainerType::const_reverse_iterator;
+	using SubcontainerType = std::map<TKeyType, TValueType, TContainerHasher<TKeyType>>;
+	using Iterator = typename SubcontainerType::iterator;
+	using ReverseIterator = typename SubcontainerType::reverse_iterator;
+	using ConstIterator = typename SubcontainerType::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	constexpr static auto ContainerType = EContainerType::ASSOCIATIVE;
 	constexpr static bool bHasHashing = false;
 	constexpr static bool bIsForwardOnly = false;
 };

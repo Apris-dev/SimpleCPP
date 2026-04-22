@@ -222,11 +222,12 @@ protected:
 template <typename TType>
 struct TContainerTraits<TVector<TType>> {
 	using Type = TType;
-	using ContainerType = std::vector<TType>;
-	using Iterator = typename ContainerType::iterator;
-	using ReverseIterator = typename ContainerType::reverse_iterator;
-	using ConstIterator = typename ContainerType::const_iterator;
-	using ConstReverseIterator = typename ContainerType::const_reverse_iterator;
+	using SubcontainerType = std::vector<TType>;
+	using Iterator = typename SubcontainerType::iterator;
+	using ReverseIterator = typename SubcontainerType::reverse_iterator;
+	using ConstIterator = typename SubcontainerType::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;
 	constexpr static bool bIsForwardOnly = true;

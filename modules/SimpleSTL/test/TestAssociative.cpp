@@ -224,7 +224,7 @@ int main() {
 	vec.push(5, val);
 
 	for (auto& v : vec) {
-		std::cout << *v.second << std::endl;
+		std::cout << *v.second() << std::endl;
 	}
 
 	std::cout << (vec.contains(val) ? "True" : "False") << std::endl;

@@ -189,11 +189,12 @@ protected:
 template <typename TType>
 struct TContainerTraits<TPriorityMultiSet<TType>> {
 	using Type = TType;
-	using ContainerType = std::multiset<TType, TContainerHasher<TType>>;
-	using Iterator = typename ContainerType::iterator;
-	using ReverseIterator = typename ContainerType::reverse_iterator;
-	using ConstIterator = typename ContainerType::const_iterator;
-	using ConstReverseIterator = typename ContainerType::const_reverse_iterator;
+	using SubcontainerType = std::multiset<TType, TContainerHasher<TType>>;
+	using Iterator = typename SubcontainerType::iterator;
+	using ReverseIterator = typename SubcontainerType::reverse_iterator;
+	using ConstIterator = typename SubcontainerType::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	constexpr static auto ContainerType = EContainerType::SELF_ASSOCIATIVE;
 	constexpr static bool bHasHashing = false;
 	constexpr static bool bIsForwardOnly = false;
 };

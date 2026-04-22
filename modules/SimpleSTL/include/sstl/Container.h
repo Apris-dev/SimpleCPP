@@ -49,25 +49,58 @@
 #define GUARANTEED = 0;
 #define NOT_GUARANTEED { throw std::runtime_error("Attempted Usage of unimplemented function in TContainer."); }
 
+template <typename>
+struct TContainerTraits;
+
+template <typename>
+struct TSequenceContainer;
+
+template <typename>
+struct TAssociativeContainer;
+
+template <typename>
+struct TSelfAssociativeContainer;
+
+enum class EContainerType : uint8 {
+	SEQUENCE,
+	ASSOCIATIVE,
+	SELF_ASSOCIATIVE
+};
+
 // A universal iterator that guarantees std::advance
-template <typename TItrType>
+template <typename TContainerType, typename TItrType>
 struct TVirtualIterator {
 
-    TVirtualIterator(const TItrType& inItr): itr(inItr) {}
+	using Traits = TContainerTraits<TContainerType>;
+	constexpr static EContainerType ContainerType = Traits::ContainerType;
+
+	TVirtualIterator(const TItrType& inItr): itr(inItr) {}
 
 	//TODO: verify offset or keep unsafe...
 
-	decltype(auto) operator*() noexcept {
-		return *itr;
+	decltype(auto) operator*() noexcept { //returns ref
+		if constexpr (ContainerType == EContainerType::ASSOCIATIVE) {
+			using KeyType = typename Traits::KeyType;
+			using ValueType = typename Traits::ValueType;
+			return reinterpret_cast<TPair<KeyType, ValueType>&>(*itr);
+		} else {
+			return *itr;
+		}
 	}
 
-	decltype(auto) operator->() noexcept {
-    	return itr;
-    }
+	decltype(auto) operator->() noexcept { //returns pointer
+		if constexpr (ContainerType == EContainerType::ASSOCIATIVE) {
+			using KeyType = typename Traits::KeyType;
+			using ValueType = typename Traits::ValueType;
+			return reinterpret_cast<TPair<KeyType, ValueType>*>(itr.operator->());
+		} else {
+			return itr.operator->();
+		}
+	}
 
 	decltype(auto) operator[](const int offset) noexcept {
 		return itr[offset];
-    }
+	}
 
 	decltype(auto) operator[](const int offset) const noexcept {
 		return itr[offset];
@@ -103,10 +136,10 @@ struct TVirtualIterator {
 	}
 
 	TVirtualIterator operator++(int) noexcept {
-        TVirtualIterator otr = *this;
-    	++*this;
-    	return otr;
-    }
+		TVirtualIterator otr = *this;
+    		++*this;
+    		return otr;
+	}
 
 	TVirtualIterator& operator+=(const int offset) noexcept {
 		std::advance(itr, offset);
@@ -130,10 +163,10 @@ struct TVirtualIterator {
 	}
 
 	TVirtualIterator operator--(int) noexcept {
-    	TVirtualIterator otr = *this;
-    	--*this;
-    	return otr;
-    }
+    		TVirtualIterator otr = *this;
+    		--*this;
+    		return otr;
+	}
 
 	TVirtualIterator& operator-=(const int offset) noexcept {
 		std::advance(itr, -offset);
@@ -166,18 +199,6 @@ struct TContainerHasher {
 #endif
 	}
 };
-
-template <typename>
-struct TContainerTraits;
-
-template <typename>
-struct TSequenceContainer;
-
-template <typename>
-struct TAssociativeContainer;
-
-template <typename>
-struct TSelfAssociativeContainer;
 
 // Allow subclasses to get each other's containers without public access
 struct SContainer {
@@ -254,11 +275,10 @@ struct TSequenceContainer : SContainer {
 	using Traits = TContainerTraits<TContainerType>;
 
 	using TType = typename Traits::Type;
-	using Iterator = TVirtualIterator<typename Traits::Iterator>;
-	using ReverseIterator = TVirtualIterator<typename Traits::ReverseIterator>;
-	using ConstIterator = TVirtualIterator<typename Traits::ConstIterator>;
-	using ConstReverseIterator = TVirtualIterator<typename Traits::ConstReverseIterator>;
-	using SubcontainerType = typename Traits::ContainerType;
+	using Iterator = TVirtualIterator<TContainerType, typename Traits::Iterator>;
+	using ReverseIterator = TVirtualIterator<TContainerType, typename Traits::ReverseIterator>;
+	using ConstIterator = TVirtualIterator<TContainerType, typename Traits::ConstIterator>;
+	using ConstReverseIterator = TVirtualIterator<TContainerType, typename Traits::ConstReverseIterator>;
 	constexpr static bool bIsContiguousMemory = Traits::bIsContiguousMemory;
 	constexpr static bool bIsLimitedAccess = Traits::bIsLimitedAccess;
 	constexpr static bool bIsForwardOnly = Traits::bIsForwardOnly;
@@ -485,10 +505,10 @@ struct TAssociativeContainer : SContainer {
 
 	using TKeyType = typename Traits::KeyType;
 	using TValueType = typename Traits::ValueType;
-	using Iterator = TVirtualIterator<typename Traits::Iterator>;
-	using ReverseIterator = TVirtualIterator<typename Traits::ReverseIterator>;
-	using ConstIterator = TVirtualIterator<typename Traits::ConstIterator>;
-	using ConstReverseIterator = TVirtualIterator<typename Traits::ConstReverseIterator>;
+	using Iterator = TVirtualIterator<TContainerType, typename Traits::Iterator>;
+	using ReverseIterator = TVirtualIterator<TContainerType, typename Traits::ReverseIterator>;
+	using ConstIterator = TVirtualIterator<TContainerType, typename Traits::ConstIterator>;
+	using ConstReverseIterator = TVirtualIterator<TContainerType, typename Traits::ConstReverseIterator>;
 	constexpr static bool bHasHashing = Traits::bHasHashing;
 
 	// Returns the size of the container
@@ -613,10 +633,10 @@ struct TSelfAssociativeContainer : SContainer {
 	using Traits = TContainerTraits<TContainerType>;
 
 	using TType = typename Traits::Type;
-	using Iterator = TVirtualIterator<typename Traits::Iterator>;
-	using ReverseIterator = TVirtualIterator<typename Traits::ReverseIterator>;
-	using ConstIterator = TVirtualIterator<typename Traits::ConstIterator>;
-	using ConstReverseIterator = TVirtualIterator<typename Traits::ConstReverseIterator>;
+	using Iterator = TVirtualIterator<TContainerType, typename Traits::Iterator>;
+	using ReverseIterator = TVirtualIterator<TContainerType, typename Traits::ReverseIterator>;
+	using ConstIterator = TVirtualIterator<TContainerType, typename Traits::ConstIterator>;
+	using ConstReverseIterator = TVirtualIterator<TContainerType, typename Traits::ConstReverseIterator>;
 	constexpr static bool bHasHashing = Traits::bHasHashing;
 	constexpr static bool bIsForwardOnly = Traits::bIsForwardOnly;
 

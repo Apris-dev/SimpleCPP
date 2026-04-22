@@ -31,7 +31,7 @@ struct TPair {
 #endif
 	TPair()
 	noexcept(std::is_nothrow_default_constructible_v<TOtherKeyType> && std::is_nothrow_default_constructible_v<TOtherValueType>) // strengthened
-	: first(), second() {}
+	: _pair() {}
 
 	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TKeyType, const TOtherKeyType&>, std::is_constructible<TValueType, const TOtherValueType&>>, int> = 0
@@ -41,7 +41,7 @@ struct TPair {
 #endif
 	TPair(const TPair<TOtherKeyType, TOtherValueType>& pair)
 	noexcept(std::is_nothrow_constructible_v<TKeyType, const TOtherKeyType&> && std::is_nothrow_constructible_v<TValueType, const TOtherValueType&>)
-	: first(pair.first), second(pair.second) {}
+	: _pair(pair._pair.first, pair._pair.second) {}
 
 	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TKeyType, TOtherKeyType&>, std::is_constructible<TValueType, TOtherValueType&>>, int> = 0
@@ -51,7 +51,7 @@ struct TPair {
 #endif
 	TPair(TPair<TOtherKeyType, TOtherValueType>& pair)
 	noexcept(std::is_nothrow_constructible_v<TKeyType, TOtherKeyType&> && std::is_nothrow_constructible_v<TValueType, TOtherValueType&>)
-	: first(pair.first), second(pair.second) {}
+	: _pair(pair._pair.first, pair._pair.second) {}
 
 	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TKeyType, TOtherKeyType>, std::is_constructible<TValueType, TOtherValueType>>, int> = 0
@@ -61,7 +61,7 @@ struct TPair {
 #endif
 	TPair(TPair<TOtherKeyType, TOtherValueType>&& pair)
 	noexcept(std::is_nothrow_constructible_v<TKeyType, TOtherKeyType> && std::is_nothrow_constructible_v<TValueType, TOtherValueType>)
-	: first(std::forward<TOtherKeyType>(pair.first)), second(std::forward<TOtherValueType>(pair.second)) {}
+	: _pair(std::forward<TOtherKeyType>(pair._pair.first), std::forward<TOtherValueType>(pair._pair.second)) {}
 
 	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TKeyType, const TOtherKeyType&>, std::is_constructible<TValueType, const TOtherValueType&>>, int> = 0
@@ -71,7 +71,7 @@ struct TPair {
 #endif
 	TPair(const std::pair<TOtherKeyType, TOtherValueType>& pair)
 	noexcept(std::is_nothrow_constructible_v<TKeyType, const TOtherKeyType&> && std::is_nothrow_constructible_v<TValueType, const TOtherValueType&>)
-	: first(pair.first), second(pair.second) {}
+	: _pair(pair._pair.first, pair._pair.second) {}
 
 	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TKeyType, TOtherKeyType&>, std::is_constructible<TValueType, TOtherValueType&>>, int> = 0
@@ -81,7 +81,7 @@ struct TPair {
 #endif
 	TPair(std::pair<TOtherKeyType, TOtherValueType>& pair)
 	noexcept(std::is_nothrow_constructible_v<TKeyType, TOtherKeyType&> && std::is_nothrow_constructible_v<TValueType, TOtherValueType&>)
-	: first(pair.first), second(pair.second) {}
+	: _pair(pair._pair.first, pair._pair.second) {}
 
 	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TKeyType, TOtherKeyType>, std::is_constructible<TValueType, TOtherValueType>>, int> = 0
@@ -91,7 +91,7 @@ struct TPair {
 #endif
 	TPair(std::pair<TOtherKeyType, TOtherValueType>&& pair)
 	noexcept(std::is_nothrow_constructible_v<TKeyType, TOtherKeyType> && std::is_nothrow_constructible_v<TValueType, TOtherValueType>)
-	: first(std::forward<TOtherKeyType>(pair.first)), second(std::forward<TOtherValueType>(pair.second)) {}
+	: _pair(std::forward<TOtherKeyType>(pair._pair.first), std::forward<TOtherValueType>(pair._pair.second)) {}
 
 	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TKeyType, const TOtherKeyType&>, std::is_constructible<TValueType, const TOtherValueType&>>, int> = 0
@@ -101,7 +101,7 @@ struct TPair {
 #endif
 	TPair(const TOtherKeyType& fst, const TOtherValueType& snd)
 	noexcept(std::is_nothrow_constructible_v<TKeyType, const TOtherKeyType&> && std::is_nothrow_constructible_v<TValueType, const TOtherValueType&>)
-	: first(fst), second(snd) {}
+	: _pair(fst, snd) {}
 
 	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TKeyType, TOtherKeyType&>, std::is_constructible<TValueType, TOtherValueType&>>, int> = 0
@@ -111,7 +111,7 @@ struct TPair {
 #endif
 	TPair(TOtherKeyType& fst, TOtherValueType& snd)
 	noexcept(std::is_nothrow_constructible_v<TKeyType, TOtherKeyType&> && std::is_nothrow_constructible_v<TValueType, TOtherValueType&>)
-	: first(fst), second(snd) {}
+	: _pair(fst, snd) {}
 
 	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TKeyType, TOtherKeyType>, std::is_constructible<TValueType, TOtherValueType>>, int> = 0
@@ -121,10 +121,10 @@ struct TPair {
 #endif
 	TPair(TOtherKeyType&& fst, TOtherValueType&& snd)
 	noexcept(std::is_nothrow_constructible_v<TKeyType, TOtherKeyType> && std::is_nothrow_constructible_v<TValueType, TOtherValueType>)
-	: first(std::forward<TOtherKeyType>(fst)), second(std::forward<TOtherValueType>(snd)) {}
+	: _pair(std::forward<TOtherKeyType>(fst), std::forward<TOtherValueType>(snd)) {}
 
 	operator std::pair<TKeyType, TValueType>() const {
-		return std::make_pair(first, second);
+		return _pair;
 	}
 
 	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType,
@@ -132,8 +132,8 @@ struct TPair {
 	>
 	TPair& operator=(const TPair<TOtherKeyType, TOtherValueType>& otr)
 	noexcept(std::is_nothrow_assignable_v<TKeyType&, const TOtherKeyType&> && std::is_nothrow_assignable_v<TValueType&, const TOtherValueType&>) {
-		first = otr.first;
-		second = otr.second;
+		_pair.first = otr._pair.first;
+		_pair.second = otr._pair.second;
 		return *this;
 	}
 
@@ -142,8 +142,8 @@ struct TPair {
 	>
 	TPair& operator=(TPair<TOtherKeyType, TOtherValueType>& otr)
 	noexcept(std::is_nothrow_assignable_v<TKeyType&, TOtherKeyType&> && std::is_nothrow_assignable_v<TValueType&, TOtherValueType&>) {
-		first = otr.first;
-		second = otr.second;
+		_pair.first = otr._pair.first;
+		_pair.second = otr._pair.second;
 		return *this;
 	}
 
@@ -152,8 +152,8 @@ struct TPair {
 	>
 	TPair& operator=(TPair<TOtherKeyType, TOtherValueType>&& otr)
 	noexcept(std::is_nothrow_assignable_v<TKeyType&, TOtherKeyType> && std::is_nothrow_assignable_v<TValueType&, TOtherValueType>) {
-		first = std::forward<TOtherKeyType>(otr.first);
-		second = std::forward<TOtherValueType>(otr.second);
+		_pair.first = std::forward<TOtherKeyType>(otr._pair.first);
+		_pair.second = std::forward<TOtherValueType>(otr._pair.second);
 		return *this;
 	}
 
@@ -162,45 +162,52 @@ struct TPair {
 	>
 	TPair& operator=(const std::pair<TOtherKeyType, TOtherValueType>& otr)
 	noexcept(std::is_nothrow_assignable_v<TKeyType&, const TOtherKeyType&> && std::is_nothrow_assignable_v<TValueType&, const TOtherValueType&>) {
-    	first = otr.first;
-    	second = otr.second;
-    	return *this;
-    }
+    		_pair.first = otr._pair.first;
+    		_pair.second = otr._pair.second;
+    		return *this;
+	}
 
 	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType,
 		std::enable_if_t<std::conjunction_v<std::is_assignable<TKeyType&, TOtherKeyType&>, std::is_assignable<TValueType&, TOtherValueType&>>, int> = 0
 	>
 	TPair& operator=(std::pair<TOtherKeyType, TOtherValueType>& otr)
 	noexcept(std::is_nothrow_assignable_v<TKeyType&, TOtherKeyType&> && std::is_nothrow_assignable_v<TValueType&, TOtherValueType&>) {
-    	first = otr.first;
-    	second = otr.second;
-    	return *this;
-    }
+    		_pair.first = otr._pair.first;
+    		_pair.second = otr._pair.second;
+    		return *this;
+	}
 
 	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType,
 		std::enable_if_t<std::conjunction_v<std::is_assignable<TKeyType&, TOtherKeyType>, std::is_assignable<TValueType&, TOtherValueType>>, int> = 0
 	>
 	TPair& operator=(std::pair<TOtherKeyType, TOtherValueType>&& otr)
 	noexcept(std::is_nothrow_assignable_v<TKeyType&, TOtherKeyType> && std::is_nothrow_assignable_v<TValueType&, TOtherValueType>) {
-    	first = std::forward<TOtherKeyType>(otr.first);
-    	second = std::forward<TOtherValueType>(otr.second);
-    	return *this;
-    }
+    		_pair.first = std::forward<TOtherKeyType>(otr._pair.first);
+    		_pair.second = std::forward<TOtherValueType>(otr._pair.second);
+    		return *this;
+	}
 
 	template <class TOtherKeyType, class TOtherValueType>
 	friend constexpr bool operator==(const TPair& lhs, const TPair<TOtherKeyType, TOtherValueType>& rhs) {
-		return lhs.first == rhs.first && lhs.second == rhs.second;
+	    return lhs._pair.first == rhs._pair.first && lhs._pair.second == rhs._pair.second;
 	}
 
 	template <class TOtherKeyType, class TOtherValueType>
 	friend constexpr bool operator==(const TPair& lhs, const std::pair<TOtherKeyType, TOtherValueType>& rhs) {
-    	return lhs.first == rhs.first && lhs.second == rhs.second;
-    }
-	
-	TKeyType first;
-	TValueType second;
-	
+	    return lhs._pair.first == rhs._pair.first && lhs._pair.second == rhs._pair.second;
+	}
+
+	decltype(auto) first() { return _pair.first; }
+	decltype(auto) key() { return _pair.first; }
+	decltype(auto) index() { return _pair.first; }
+
+	decltype(auto) second() { return _pair.second; }
+	decltype(auto) value() { return _pair.second; }
+	decltype(auto) object() { return _pair.second; }
+
 private:
+
+	std::pair<TKeyType, TValueType> _pair;
 
 	template<typename, typename>
 	friend struct TPair;
