@@ -4,3 +4,4 @@
 
 link_simplecpp_test(SimpleDG Test SimpleArchive)
 link_simplecpp_test(SimpleDG Test SimplePtr)
+link_simplecpp_test(SimpleDG Test SimpleSTL)
