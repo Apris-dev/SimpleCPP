@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sptr/Common.h"
+#include "sutil/InitializerList.h"
 #include "sptr/Weak.h"
 #include "sptr/Unique.h"
 
