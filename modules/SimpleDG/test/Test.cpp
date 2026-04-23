@@ -114,9 +114,8 @@ struct TestCommandBuffer {
             sorted.push(lifetime);
         }
 
-        //TODO: stl sort
-        std::sort(sorted.begin().itr, sorted.end().itr, [](const auto& a, const auto& b) {
-            return a.second().lastPassIndex < b.second().lastPassIndex; // earliest last-use first
+        sorted.sort([](const auto& fst, const auto& snd) {
+            return fst.second().lastPassIndex < snd.second().lastPassIndex; // earliest last-use first
         });
 
         TVector<TShared<SBuffer>> destructionOrder;
