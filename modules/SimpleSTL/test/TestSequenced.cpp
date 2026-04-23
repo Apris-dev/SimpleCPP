@@ -213,56 +213,16 @@ int main() {
 	DO_TEST(TStack)
 	DO_TEST(TQueue)*/
 
-	TVector<TShared<int>> vec;
+	TList<int> vec;
 
-	TShared val{50};
+	vec.push(20);
+	vec.push(52);
+	vec.push(73);
+	vec.push(4);
 
-	const TFrail otr = val;
-	auto* ival = otr.get();
+	vec.sort();
 
-	vec.push(val);
-
-	for (auto& v : vec) {
-		std::cout << *v << std::endl;
-	}
-
-	std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
-	std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
-	std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
-
-	std::cout << vec.find(val) << std::endl;
-	std::cout << vec.find(otr) << std::endl;
-	std::cout << vec.find(ival) << std::endl;
-
-	{
-		vec.pop(val);
-
-		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
-
-		vec.push(val);
-	}
-
-	{
-		vec.pop(otr);
-
-		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
-
-		vec.push(val);
-	}
-
-	{
-		vec.pop(ival);
-
-		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
-
-		vec.push(val);
-	}
+	for (auto& i : vec) { std::cout << i << std::endl; }
 
 	return 0;
 }

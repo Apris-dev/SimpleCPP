@@ -208,7 +208,7 @@ struct TContainerTraits<TMap<TKeyType, TValueType>> {
 	using ConstReverseIterator = typename SubcontainerType::const_iterator;
 	constexpr static auto ContainerType = EContainerType::ASSOCIATIVE;
 	constexpr static bool bHasHashing = true;
-	constexpr static bool bIsForwardOnly = true;
+	constexpr static bool bIsForwardOnly = false;
 };
 
 template <typename TKeyType, typename TValueType>

@@ -437,6 +437,18 @@ struct TSequenceContainer : SContainer {
 		derived(*this).pop(obj);
 	}
 
+	ENABLE_FUNC_IF(!bIsLimitedAccess && !bIsForwardOnly)
+	void sort() {
+		derived(*this).sort();
+	}
+
+	template <typename Func, bool b = !bIsLimitedAccess && !bIsForwardOnly,
+		std::enable_if_t<b, int> = 0
+	>
+	void sort(Func&& func) {
+		derived(*this).sort(std::forward<Func>(func));
+	}
+
 	// Moves an object at index from this to container otr
 	template <typename TOtherContainerType>
 	void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {

@@ -188,6 +188,16 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		ERASE(m_Container, obj);
 	}
 
+	ENABLE_FUNC_IF(sutil::is_less_than_comparable_v<TType>)
+	void sort() {
+		std::sort(m_Container.begin(), m_Container.end());
+	}
+
+	template <typename Func>
+	void sort(Func&& func) {
+		std::sort(m_Container.begin(), m_Container.end(), std::forward<Func>(func));
+	}
+
 	template <typename TOtherContainerType>
 	void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {
 		// Prefer move, but copy if not available
@@ -230,7 +240,7 @@ struct TContainerTraits<TVector<TType>> {
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;
-	constexpr static bool bIsForwardOnly = true;
+	constexpr static bool bIsForwardOnly = false;
 	constexpr static bool bIsLimitedSize = false;
 };
 

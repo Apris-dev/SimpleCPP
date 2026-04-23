@@ -188,6 +188,16 @@ struct TList : TSequenceContainer<TList<TType>> {
 		ERASE(m_Container, obj);
 	}
 
+	ENABLE_FUNC_IF(sutil::is_less_than_comparable_v<TType>)
+	void sort() {
+		m_Container.sort();
+	}
+
+	template <typename Func>
+	void sort(Func&& func) {
+		m_Container.sort(std::forward<Func>(func));
+	}
+
 	template <typename TOtherContainerType>
 	void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {
 		// Prefer move, but copy if not available
@@ -237,7 +247,7 @@ struct TContainerTraits<TList<TType>> {
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = false;
 	constexpr static bool bIsLimitedAccess = false;
-	constexpr static bool bIsForwardOnly = true;
+	constexpr static bool bIsForwardOnly = false;
 	constexpr static bool bIsLimitedSize = false;
 };
 

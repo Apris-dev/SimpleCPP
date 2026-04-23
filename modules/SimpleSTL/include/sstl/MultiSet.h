@@ -187,7 +187,7 @@ struct TContainerTraits<TMultiSet<TType>> {
 	using ConstReverseIterator = typename SubcontainerType::const_iterator;
 	constexpr static auto ContainerType = EContainerType::SELF_ASSOCIATIVE;
 	constexpr static bool bHasHashing = true;
-	constexpr static bool bIsForwardOnly = true;
+	constexpr static bool bIsForwardOnly = false;
 };
 
 template <typename TType, typename... TArgs>

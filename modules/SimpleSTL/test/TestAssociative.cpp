@@ -214,36 +214,5 @@ int main() {
 	DO_MAP_TEST(TPriorityMap)
 	DO_MAP_TEST(TPriorityMultiMap)
 
-	TMap<int, TShared<int>> vec;
-
-	TShared val{50};
-
-	const TFrail otr = val;
-	auto* ival = otr.get();
-
-	vec.push(5, val);
-
-	for (auto& v : vec) {
-		std::cout << *v.second() << std::endl;
-	}
-
-	std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
-	std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
-	std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
-
-	std::cout << vec.find(val) << std::endl;
-	std::cout << vec.find(otr) << std::endl;
-	std::cout << vec.find(ival) << std::endl;
-
-	{
-		vec.pop(5);
-
-		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
-
-		vec.push(5, val);
-	}
-
 	return 0;
 }
