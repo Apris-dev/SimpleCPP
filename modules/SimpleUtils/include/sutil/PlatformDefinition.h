@@ -25,6 +25,12 @@
 #define LINE_ENDING "\n"
 #endif
 
+#ifdef USING_MSVC
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT __attribute__((visibility("default")))
+#endif
+
 #include <cstdint>
 
 using uint8 = std::uint8_t;
