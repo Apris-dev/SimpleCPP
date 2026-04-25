@@ -6,6 +6,11 @@
 !*.cpp
 !*.h
 
+# Scripts
+!*.ps1
+!*.sh
+!*.bat
+
 # Resource Files
 !*.res
 
