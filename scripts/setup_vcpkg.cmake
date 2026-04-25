@@ -1,4 +1,4 @@
-# Designed to be used by downstream projects to simplefy c++ dependencies
+# Designed to be used by downstream projects to simplify c++ dependencies
 # Run BEFORE project command to use
 # Will use vcpkg installed on system if available
 # If you wish to remove the bundled one, remove your binary directory and install on system
