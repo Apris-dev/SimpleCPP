@@ -5,15 +5,24 @@
 
 # Get the correct config file to add vcpkg path to
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS: check for Zsh (default) then Bash
-    if [[ "$SHELL" == *"zsh"* ]]; then
+    # macOS: Zsh is the modern default, but .zprofile is better for IDEs than .zshrc
+    if [ -f "$HOME/.zprofile" ]; then
+        CONFIG="$HOME/.zprofile"
+    elif [ -f "$HOME/.zshrc" ]; then
         CONFIG="$HOME/.zshrc"
     else
         CONFIG="$HOME/.bash_profile"
     fi
 else
-    # Linux standard
-    CONFIG="$HOME/.bashrc"
+    # Linux: Check for login profile first (better for CLion/IDE inheritance)
+    if [ -f "$HOME/.bash_profile" ]; then
+        CONFIG="$HOME/.bash_profile"
+    elif [ -f "$HOME/.profile" ]; then
+        CONFIG="$HOME/.profile"
+    else
+        # Fallback to the standard interactive shell config
+        CONFIG="$HOME/.bashrc"
+    fi
 fi
 
 # The Directory to install/find vcpkg
