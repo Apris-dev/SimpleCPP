@@ -45,13 +45,23 @@ struct TSpan {
         }
     }
 
-    decltype(auto) begin() const {
-        return m_Container.begin();
-    }
+    [[nodiscard]] size_t getSize() const { return m_Container.getSize(); }
 
-    decltype(auto) end() const {
-        return m_Container.end();
-    }
+    [[nodiscard]] bool isEmpty() const { return m_Container.isEmpty(); }
+
+    [[nodiscard]] const TType& top() const { return m_Container.top(); }
+
+    [[nodiscard]] decltype(auto) begin() const { return m_Container.begin(); }
+
+    [[nodiscard]] decltype(auto) end() const { return m_Container.end(); }
+
+    [[nodiscard]] bool isValid(size_t index) const { return m_Container.isValid(index); }
+
+    template <typename TOtherType>
+    [[nodiscard]] bool contains(const TOtherType& obj) const { return m_Container.contains(obj); }
+
+    template <typename TOtherType>
+    [[nodiscard]] size_t find(const TOtherType& obj) const { return m_Container.find(obj); }
 
 private:
 
