@@ -1,6 +1,6 @@
 #pragma once
 
-#include "List.h"
+#include "ForwardList.h"
 
 // Generic span, unlike std::span this type supports all container types as input
 // Including maps and sets (Maps will be pairs)
@@ -55,5 +55,5 @@ struct TSpan {
 
 private:
 
-    TList<std::reference_wrapper<const TTrueType>> m_Container;
+    TForwardList<std::reference_wrapper<const TTrueType>> m_Container;
 };
