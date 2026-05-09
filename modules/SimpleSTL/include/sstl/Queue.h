@@ -45,7 +45,7 @@ struct TQueue : TSequenceContainer<TQueue<TType>> {
 	[[nodiscard]] typename Super::ConstIterator end() const noexcept { return m_Container.end(); }
 
 	[[nodiscard]] bool isValid(size_t index) const {
-		return index > 0 && index < getSize();
+		return index < getSize();
 	}
 
 	template <typename TOtherType,

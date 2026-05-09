@@ -9,6 +9,7 @@
 #include "sstl/PriorityMultiSet.h"
 #include "sstl/Set.h"
 #include "sstl/PrioritySet.h"
+#include "sstl/Span.h"
 
 template <typename TContainerType>
 void containerTest(const std::string& containerName, TSelfAssociativeContainer<TContainerType>& container) {
@@ -135,62 +136,26 @@ void appendTest(const std::string& containerName, TSelfAssociativeContainer<TCon
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Unique Constructor Test" << std::endl; } \
 	{ x container{TUnique{0}, TUnique{5}, TUnique{10}}; for (const TUnique<int>& i : container) { std::cout << *i.get() << std::endl; } }
 
+void testSpan(const TSpan<int>& span) {
+	for (const auto& val : span) {
+		std::cout << val.get() << std::endl;
+	}
+}
+
 int main() {
 	/*DO_ASSOCIATIVE_TEST(TSet)
 	DO_ASSOCIATIVE_TEST(TMultiSet)
 	DO_ASSOCIATIVE_TEST(TPrioritySet)
 	DO_ASSOCIATIVE_TEST(TPriorityMultiSet)*/
 
-	TSet<TShared<int>> vec;
+	TSet<int> vec;
 
-	TShared val{50};
+	vec.push(20);
+	vec.push(52);
+	vec.push(73);
+	vec.push(4);
 
-	const TFrail otr = val;
-	auto* ival = otr.get();
-
-	vec.push(val);
-
-	for (auto& v : vec) {
-		std::cout << *v << std::endl;
-	}
-
-	std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
-	std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
-	std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
-
-	{
-		vec.pop(val);
-
-		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
-
-		vec.push(val);
-	}
-
-	{
-		vec.pop(otr);
-
-		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
-
-		vec.push(val);
-	}
-
-	{
-		vec.pop(ival);
-
-		std::cout << (vec.contains(val) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(otr) ? "True" : "False") << std::endl;
-		std::cout << (vec.contains(ival) ? "True" : "False") << std::endl;
-
-		vec.push(val);
-	}
-
-	TSet<TShared<int>> vec2;
-
-	vec.transfer(vec2, otr);
+	testSpan(vec);
 
 	return 0;
 }

@@ -28,6 +28,9 @@
         include/sstl/PriorityMultiSet.h
         include/sstl/PriorityMap.h
         include/sstl/PriorityMultiMap.h
+
+        # Generic
+        include/sstl/Span.h
 )
 
 link_simplecpp_module(SimpleSTL INTERFACE SimpleUtils)

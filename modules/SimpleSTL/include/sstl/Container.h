@@ -8,6 +8,7 @@
 #include <functional>
 #include <stdexcept>
 #include <algorithm>
+#include <any>
 
 #ifdef USING_SIMPLEARCHIVE
 #include "sarch/Archive.h"
@@ -687,7 +688,7 @@ struct TSelfAssociativeContainer : SContainer {
 
 	// Checks if a certain index is contained within the container
 	[[nodiscard]] bool isValid(const size_t index) const {
-		return index > 0 && index < getSize();
+		return index < getSize();
 	}
 
 	// Checks if a certain object is contained within the container

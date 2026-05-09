@@ -10,6 +10,7 @@
 #include "sstl/PriorityMap.h"
 #include "sstl/MultiMap.h"
 #include "sstl/PriorityMultiMap.h"
+#include "sstl/Span.h"
 
 enum class MapEnum : uint8_t {
 	NONE,
@@ -207,12 +208,26 @@ void appendTest(const std::string& containerName, TAssociativeContainer<TContain
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Unique Constructor Test" << std::endl; } \
 	{ x container{TPair{MapEnum::NONE, TUnique{0}}, TPair{MapEnum::ONE, TUnique{5}}, TPair{MapEnum::TWO, TUnique{10}}}; for (const auto& pair : container) { std::cout << *pair.second().get() << std::endl; } } \
 
+void testSpan(const TSpan<MapEnum, int>& span) {
+	for (const auto& val : span) {
+		std::cout << val.get().second() << std::endl;
+	}
+}
 
 int main() {
-	DO_MAP_TEST(TMap)
+	/*DO_MAP_TEST(TMap)
 	DO_MAP_TEST(TMultiMap)
 	DO_MAP_TEST(TPriorityMap)
-	DO_MAP_TEST(TPriorityMultiMap)
+	DO_MAP_TEST(TPriorityMultiMap)*/
+
+	TPriorityMap<MapEnum, int> vec;
+
+	vec.push(MapEnum::ONE, 20);
+	vec.push(MapEnum::TWO, 52);
+	vec.push(MapEnum::THREE, 73);
+	vec.push(MapEnum::FOUR, 4);
+
+	testSpan(vec);
 
 	return 0;
 }

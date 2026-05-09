@@ -13,6 +13,7 @@
 #include "sstl/MinHeap.h"
 #include "sstl/List.h"
 #include "sstl/Queue.h"
+#include "sstl/Span.h"
 #include "sstl/Stack.h"
 
 template <typename TContainerType>
@@ -202,6 +203,12 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Unique Constructor Test" << std::endl; } \
 	{ x<TUnique<int>, 3> container{TUnique{0}, TUnique{5}, TUnique{10}}; for (auto& i : container) { std::cout << *i << std::endl; } }
 
+void testSpan(const TSpan<int>& span) {
+	for (const auto& val : span) {
+		std::cout << val.get() << std::endl;
+	}
+}
+
 int main() {
 	/*DO_TEST(TVector)
 	DO_TEST(TMaxHeap)
@@ -222,7 +229,9 @@ int main() {
 
 	vec.sort();
 
-	for (auto& i : vec) { std::cout << i << std::endl; }
+	//for (auto& i : vec) { std::cout << i << std::endl; }
+
+	testSpan(vec);
 
 	return 0;
 }

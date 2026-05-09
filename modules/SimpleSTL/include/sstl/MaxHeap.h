@@ -96,7 +96,7 @@ struct TMaxHeap : TSequenceContainer<TMaxHeap<TType>> {
 	}
 
 	[[nodiscard]] bool isValid(size_t index) const {
-		return index > 0 && index < getSize();
+		return  index < getSize();
 	}
 
 	template <typename TOtherType,
