@@ -12,7 +12,7 @@ The recommended method is to use git submodules, but copying into your project s
 
 ### Copy into project
 
-You can copy SimpleCPP (or any of its modules, but be wary as they may depend on each other) into your project, and add subdirectory with cmake.
+You can copy SimpleCPP (or any of its packages, but be wary as they may depend on each other) into your project, and add subdirectory with cmake.
 
 ### Git Submodules
 
@@ -31,12 +31,12 @@ add_subdirectory(SimpleCPP)
 
 Then link using either method:
 ```
-# Link the overall library, this just includes all the modules at once
+# Link the overall library, this just includes all the packages at once
 target_link_libraries(your_target SimpleCPP)
 ```
 
 ```
-# Link an individual module.  This can be useful for larger projects that do not need each at once
+# Link an individual package.  This can be useful for larger projects that do not need each at once
 target_link_libraries(your_target SimpleCPP-SimpleUtils)
 target_link_libraries(your_target SimpleCPP-SimpleDG)
 target_link_libraries(your_target SimpleCPP-SimpleSTL)
