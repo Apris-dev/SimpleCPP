@@ -37,7 +37,9 @@ define_project(
 
 add_subdirectory(packages)
 
-get_target_property(SIMPLECPP_PACKAGES SimpleCPP PACKAGES)
+add_library(SimpleCPP INTERFACE)
+
+get_target_property(SIMPLECPP_PACKAGES SimpleCPP-Settings PACKAGES)
 
 foreach (PACKAGE IN LISTS SIMPLECPP_PACKAGES)
     target_link_libraries(SimpleCPP INTERFACE ${PACKAGE})

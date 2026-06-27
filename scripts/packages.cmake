@@ -10,13 +10,13 @@ function(define_project
 
     # Create a library using this project
     # This library has no code and links all other packges in the project to it
-    add_library(${PROJECT_NAME} INTERFACE)
+    add_library(${PROJECT_NAME}-Settings INTERFACE)
 
     # Set properties of project library
-    set_target_properties(${PROJECT_NAME} PROPERTIES PACKAGES "")
+    set_target_properties(${PROJECT_NAME}-Settings PROPERTIES PACKAGES "")
 
     # Set CXX Version
-    set_target_properties(${PROJECT_NAME} PROPERTIES
+    set_target_properties(${PROJECT_NAME}-Settings PROPERTIES
             CXX_STANDARD ${CXX_VERSION}
             CXX_STANDARD_REQUIRED ON
     )
@@ -79,7 +79,7 @@ endfunction()
 
 function(_ensure_is_package LIBRARY_NAME MESSAGE)
     # Get Packages
-    get_target_property(PROJECT_PACKAGES ${CURRENT_SCOPE_PROJECT} PACKAGES)
+    get_target_property(PROJECT_PACKAGES ${CURRENT_SCOPE_PROJECT}-Settings PACKAGES)
 
     # Ensure target package is part of the same project
     if (NOT ${LIBRARY_NAME} IN_LIST PROJECT_PACKAGES)
@@ -89,7 +89,7 @@ endfunction()
 
 function(_ensure_is_not_package LIBRARY_NAME MESSAGE)
     # Get Packages
-    get_target_property(PROJECT_PACKAGES ${CURRENT_SCOPE_PROJECT} PACKAGES)
+    get_target_property(PROJECT_PACKAGES ${CURRENT_SCOPE_PROJECT}-Settings PACKAGES)
 
     # Ensure target package is part of the same project
     if (${LIBRARY_NAME} IN_LIST PROJECT_PACKAGES)
@@ -103,7 +103,7 @@ macro (_set_target_defaults TARGET_NAME)
     set_target_properties(${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
     # Get cpp version from project and set target properties
-    get_target_property(CXX_VERSION ${CURRENT_SCOPE_PROJECT} CXX_STANDARD)
+    get_target_property(CXX_VERSION ${CURRENT_SCOPE_PROJECT}-Settings CXX_STANDARD)
 
     # Set default presets to hidden for MSVC-like behavior
     set_target_properties(${TARGET_NAME} PROPERTIES
@@ -154,7 +154,7 @@ macro(_add_package_impl TARGET_NAME LIBRARY_TYPE)
 
     # Add to list of project packages
     # Prepend to ensure that the lowest dependency is at the bottom
-    set_property(TARGET ${CURRENT_SCOPE_PROJECT} APPEND PROPERTY PACKAGES ${TARGET_NAME})
+    set_property(TARGET ${CURRENT_SCOPE_PROJECT}-Settings APPEND PROPERTY PACKAGES ${TARGET_NAME})
 
     # Set the package of the current scope
     set(CURRENT_SCOPE_PACKAGE ${TARGET_NAME} PARENT_SCOPE)
@@ -232,7 +232,7 @@ function(add_package_executable TARGET_NAME)
 
     # Add to list of project packages
     # Prepend to ensure that the lowest dependency is at the bottom
-    set_property(TARGET ${CURRENT_SCOPE_PROJECT} APPEND PROPERTY PACKAGES ${TARGET_NAME})
+    set_property(TARGET ${CURRENT_SCOPE_PROJECT}-Settings APPEND PROPERTY PACKAGES ${TARGET_NAME})
 
     # Set the package of the current scope
     set(CURRENT_SCOPE_PACKAGE ${TARGET_NAME} PARENT_SCOPE)
