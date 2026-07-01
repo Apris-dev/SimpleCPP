@@ -21,7 +21,7 @@ This setup may be more complex initially, but allows for a lot of freedom.  I re
 Run git submodule like so, replace third_party/cppns with any name you want.
 
 ```
-git submodule add https://github.com/Apris-dev/cppns third_party/cppns
+git submodule add https://github.com/Apris-dev/cppns.git third_party/cppns
 ```
 
 If using CMake, use add_subdirectory in your project.
