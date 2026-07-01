@@ -203,7 +203,7 @@ function(add_package_executable TARGET_NAME)
         else ()
             # Create the bootstrapper for the executable
             configure_file(
-                    ${CMAKE_CURRENT_SOURCE_DIR}/Bootstrapper.c.in
+                    ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Bootstrapper.c.in
                     ${CMAKE_BINARY_DIR}/Bootstrapper.c
                     @ONLY
             )
