@@ -1,5 +1,5 @@
 #pragma once
 
-#include "sutil/PlatformDefinition.h"
+#include "cppns/util/PlatformDefinition.h"
 
 extern "C" EXPORT void printHello();

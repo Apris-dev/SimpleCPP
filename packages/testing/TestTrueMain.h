@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-#include "sutil/PlatformDefinition.h"
+#include "cppns/util/PlatformDefinition.h"
 
 EXPORT std::vector<std::string> getModules();
 

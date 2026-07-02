@@ -1,8 +1,8 @@
-add_subdirectory(SimpleUtils)
-add_subdirectory(SimplePtr)
-add_subdirectory(SimpleSTL)
-add_subdirectory(SimpleArchive)
-add_subdirectory(SimpleDG)
+add_subdirectory(util)
+add_subdirectory(memory)
+add_subdirectory(container)
+add_subdirectory(archive)
+add_subdirectory(dependencyGraph)
 
 if (CPPNS_TEST)
     add_subdirectory(testing)

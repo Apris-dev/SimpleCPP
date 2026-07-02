@@ -37,8 +37,8 @@ target_link_libraries(your_target cppns)
 
 ```
 # Link an individual package.  This can be useful for larger projects that do not need each at once
-target_link_libraries(your_target cppns-SimpleUtils)
-target_link_libraries(your_target cppns-SimpleDG)
-target_link_libraries(your_target cppns-SimpleSTL)
+target_link_libraries(your_target cppns-util)
+target_link_libraries(your_target cppns-dependencyGraph)
+target_link_libraries(your_target cppns-container)
 ...
 ```

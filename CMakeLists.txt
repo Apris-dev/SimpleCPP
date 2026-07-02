@@ -39,7 +39,7 @@ add_subdirectory(packages)
 
 add_library(cppns INTERFACE)
 
-get_target_property(CPPNS_PACKAGES cppns-Settings PACKAGES)
+get_target_property(CPPNS_PACKAGES cppns-settings PACKAGES)
 
 foreach (PACKAGE IN LISTS CPPNS_PACKAGES)
     target_link_libraries(cppns INTERFACE ${PACKAGE})
