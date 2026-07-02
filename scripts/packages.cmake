@@ -146,8 +146,9 @@ macro(_add_package_impl TARGET_NAME LIBRARY_TYPE)
     )
 
     # This tells other libraries that this target has been linked downstream to enable cross-package compatibility without hard requirements
-    string(TOUPPER ${CURRENT_SCOPE_PROJECT}_${TARGET_NAME} UPPER_TARGET_NAME)
-    target_compile_definitions(${TARGET_NAME} INTERFACE USING_${UPPER_TARGET_NAME})
+    string(REPLACE "-" "_" MACRO_NAME ${TARGET_NAME})
+    string(TOUPPER ${MACRO_NAME} MACRO_NAME)
+    target_compile_definitions(${TARGET_NAME} INTERFACE USING_${MACRO_NAME})
 
     # Set defaults for targets
     _set_target_defaults(${TARGET_NAME})
